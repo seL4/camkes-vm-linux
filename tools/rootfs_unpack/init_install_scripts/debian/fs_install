@@ -1,0 +1,71 @@
+#
+# Copyright 2018, Data61
+# Commonwealth Scientific and Industrial Research Organisation (CSIRO)
+# ABN 41 687 119 230.
+#
+# This software may be distributed and modified according to the terms of
+# the BSD 2-Clause license. Note that NO WARRANTY is provided.
+# See "LICENSE_BSD2.txt" for details.
+#
+# @TAG(DATA61_BSD)
+#
+
+# Install FS post filesystem mounting shell script
+
+# Hacky attempt to substitute 'dirname'. Doesn't handle error cases, but sufficient
+# for our needs. Assumes there is always a leaf file.
+dir_name(){
+    test -n "$1" || echo ""
+    x="${1%/*}"
+    echo "$x"
+}
+
+# This a minimal directory sync implementation since we don't have rsync available during the early
+# init boot process
+sync_root_dir() {
+    rootdir=$1
+    fromdir=$2
+    cd ${fromdir}
+    files=$(find . -type f)
+    cd -
+    echo "$files" |
+    while read fname
+    do
+        if [ ! -f  ${rootdir}/${fname} ] || [ ${fromdir}/${fname} -nt ${rootdir}/${fname} ] ; then
+            dname=`dir_name ${fname}`
+            mkdir -p ${rootdir}/${dname}
+            cp -p  ${fromdir}/$fname  ${rootdir}/${fname}
+        fi
+    done
+}
+
+sync_root() {
+    rootdir=$1
+    sync_root_dir ${rootdir} /sel4_vm_artifacts
+}
+
+
+fs_install_bottom()
+{
+    sync_root ${rootmnt} 
+}
+
+mount_bottom()
+{
+	fs_install_bottom
+}
+
+mountroot()
+{
+	local_mount_root
+}
+
+mount_top()
+{
+	local_top
+}
+
+mount_premount()
+{
+	local_premount
+}
