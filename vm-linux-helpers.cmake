@@ -40,7 +40,7 @@ function(AddFileToOverlayDir filename file_location root_location overlay_name)
     add_custom_command(OUTPUT ${rootfs_output_dir}/${root_location}/${filename}
         COMMAND ${CMAKE_COMMAND} -E copy "${file_location}" "${rootfs_output_dir}/${root_location}/${filename}"
         VERBATIM
-        DEPENDS ${ROOTFS_FILE_OVERLAY_DEPENDS}
+        DEPENDS ${file_location} ${ROOTFS_FILE_OVERLAY_DEPENDS}
     )
     # Create a semi-unique target name based on the files location
     set(copy_target_name "copy_${rootfs_output_dir}/${root_location}/${filename}")
@@ -49,6 +49,7 @@ function(AddFileToOverlayDir filename file_location root_location overlay_name)
     add_custom_target(${copy_target_name} DEPENDS "${rootfs_output_dir}/${root_location}/${filename}")
     # Add the copy command as a dependency for the overlay directory
     set_property(TARGET ${overlay_name} APPEND PROPERTY DEPENDS "${copy_target_name}")
+    set_property(TARGET ${overlay_name} APPEND PROPERTY DEPENDS "${file_location}")
 endfunction(AddFileToOverlayDir)
 
 # Add a given overlay (location to directory or image file) to install on a given rootfs_image
