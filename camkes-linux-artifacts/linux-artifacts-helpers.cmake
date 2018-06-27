@@ -14,26 +14,64 @@ cmake_minimum_required(VERSION 3.8.2)
 
 set(VM_ARTIFACTS_DIR "${CMAKE_CURRENT_LIST_DIR}" CACHE INTERNAL "")
 
+# Function for getting the major version for the default Linux guest kernel provided
+# by the project
+# version: caller variable which is set to the kernel major version
+function(GetDefaultLinuxMajor version)
+    set(${version} "4" PARENT_SCOPE)
+endfunction(GetDefaultLinuxMajor)
+
+# Function for getting the minor version for the default Linux guest kernel provided
+# by the project
+# version: caller variable which is set to the kernel minor version
+function(GetDefaultLinuxMinor version)
+    set(${version} "8.16" PARENT_SCOPE)
+endfunction(GetDefaultLinuxMinor)
+
+# Function for getting the md5 hash for the default Linux guest kernel provided
+# by the project
+# md5: caller variable which is set to the kernel md5
+function(GetDefaultLinuxMd5 md5)
+    set(${md5} "5230b0185b5f4916feab86c450207606" PARENT_SCOPE)
+endfunction(GetDefaultLinuxMd5)
+
 # Function for getting the version for the default Linux guest kernel provided
 # by the project
 # version: caller variable which is set to the kernel version
 function(GetDefaultLinuxVersion version)
-    set(${version} "4.8.16" PARENT_SCOPE)
+    GetDefaultLinuxMinor(minor)
+    GetDefaultLinuxMajor(major)
+    set(${version} "${major}.${minor}" PARENT_SCOPE)
 endfunction(GetDefaultLinuxVersion)
 
 # Function for downloading the Linux source inorder to build kernel modules
 function(DownloadLinux)
-    set(linux_md5 "5230b0185b5f4916feab86c450207606")
-    set(linux_major "4")
-    set(linux_version "${linux_major}.8.16")
+    # Use the linux md5 hash if its passed in
+    if(LINUX_MD5)
+        set(linux_md5 "${LINUX_MD5}")
+    endif()
+    # Use the linux major and minor if its passed in
+    if(LINUX_MAJOR AND LINUX_MINOR)
+        set(linux_major ${LINUX_MAJOR})
+        set(linux_minor ${LINUX_MINOR})
+    else()
+        # Else default to a pre-defined major/minor
+        GetDefaultLinuxMajor(linux_major)
+        GetDefaultLinuxMinor(linux_minor)
+        GetDefaultLinuxMd5(linux_md5)
+    endif()
+    set(linux_version "${linux_major}.${linux_minor}")
     set(linux_dir "linux-${linux_version}")
     set(linux_archive "${linux_dir}.tar.gz")
     set(linux_url "https://www.kernel.org/pub/linux/kernel/v${linux_major}.x/${linux_archive}")
     # Download the linux archive and verify its hash
-    file(DOWNLOAD ${linux_url} ${CMAKE_CURRENT_BINARY_DIR}/out/${linux_archive}
-        SHOW_PROGRESS
-        EXPECTED_MD5 ${linux_md5}
-    )
+    if(NOT linux_md5 STREQUAL "")
+        file(DOWNLOAD ${linux_url} ${CMAKE_CURRENT_BINARY_DIR}/out/${linux_archive}
+            SHOW_PROGRESS
+            EXPECTED_MD5 ${linux_md5})
+    else()
+        file(DOWNLOAD ${linux_url} ${CMAKE_CURRENT_BINARY_DIR}/out/${linux_archive} SHOW_PROGRESS)
+    endif()
     # Unpack linux tar archive
     add_custom_command(OUTPUT out/${linux_dir}
         COMMAND ${CMAKE_COMMAND} -E tar xf ${linux_archive}
