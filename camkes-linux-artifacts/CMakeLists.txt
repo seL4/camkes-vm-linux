@@ -14,9 +14,6 @@ cmake_minimum_required(VERSION 3.8.2)
 
 project(vm-linux-artifacts)
 
-# Set the CMake flags for 32 bit static
-set(CMAKE_C_FLAGS "-g -O2 -Wall -m32 -static")
-
 add_subdirectory(libs)
 add_subdirectory(pkgs)
 add_subdirectory(modules)

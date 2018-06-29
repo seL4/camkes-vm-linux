@@ -22,6 +22,9 @@ include(ExternalProject)
 set(stamp_dir ${CMAKE_CURRENT_BINARY_DIR}/camkes-linux-artifacts-stamp)
 set(binary_dir ${CMAKE_BINARY_DIR}/camkes-linux-artifacts)
 
+# Get Custom toolchain for 32 bit Linux
+FindCustomPollyToolchain(LINUX_32BIT_TOOLCHAIN "linux-gcc-7-32bit-pic")
+
 ExternalProject_Add(camkes-linux-artifacts
     URL file:///${CMAKE_CURRENT_SOURCE_DIR}/camkes-linux-artifacts
 	BINARY_DIR ${binary_dir}
@@ -29,7 +32,10 @@ ExternalProject_Add(camkes-linux-artifacts
     STAMP_DIR ${stamp_dir}
     EXCLUDE_FROM_ALL
     INSTALL_COMMAND ""
-    CMAKE_ARGS "-DCROSSVM_SRC=${CMAKE_SOURCE_DIR}/projects/vm/libs/libcrossvm"
+    CMAKE_ARGS
+        -DCROSSVM_SRC=${CMAKE_SOURCE_DIR}/projects/vm/libs/libcrossvm
+        -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+        -DCMAKE_TOOLCHAIN_FILE=${LINUX_32BIT_TOOLCHAIN}
 )
 
 DeclareExternalProjObjectFiles(camkes-linux-artifacts ${binary_dir}
