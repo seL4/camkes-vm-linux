@@ -45,21 +45,8 @@ function(GetDefaultLinuxVersion version)
 endfunction(GetDefaultLinuxVersion)
 
 # Function for downloading the Linux source inorder to build kernel modules
-function(DownloadLinux)
-    # Use the linux md5 hash if its passed in
-    if(LINUX_MD5)
-        set(linux_md5 "${LINUX_MD5}")
-    endif()
-    # Use the linux major and minor if its passed in
-    if(LINUX_MAJOR AND LINUX_MINOR)
-        set(linux_major ${LINUX_MAJOR})
-        set(linux_minor ${LINUX_MINOR})
-    else()
-        # Else default to a pre-defined major/minor
-        GetDefaultLinuxMajor(linux_major)
-        GetDefaultLinuxMinor(linux_minor)
-        GetDefaultLinuxMd5(linux_md5)
-    endif()
+function(DownloadLinux linux_major linux_minor linux_md5 linux_out_dir linux_out_target)
+    # Linux version and out variables
     set(linux_version "${linux_major}.${linux_minor}")
     set(linux_dir "linux-${linux_version}")
     set(linux_archive "${linux_dir}.tar.gz")
@@ -80,24 +67,48 @@ function(DownloadLinux)
         DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/out/${linux_archive}
     )
     # Create custom target for tar extract
-    add_custom_target(extract_${linux_archive} DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/out/${linux_dir}")
-    # Linux config and symvers are to be copied to unpacked archive
-    set(linux_config "${VM_ARTIFACTS_DIR}/linux_configs/${linux_version}/config")
-    set(linux_symvers "${VM_ARTIFACTS_DIR}/linux_configs/${linux_version}/Module.symvers")
-    # Copy linux config & symvers
-    add_custom_command(OUTPUT out/${linux_dir}/.config out/${linux_dir}/Module.symvers
-        COMMAND ${CMAKE_COMMAND} -E copy "${linux_config}" "${CMAKE_CURRENT_BINARY_DIR}/out/${linux_dir}/.config"
-        COMMAND ${CMAKE_COMMAND} -E copy "${linux_symvers}" "${CMAKE_CURRENT_BINARY_DIR}/out/${linux_dir}/Module.symvers"
-        VERBATIM
-        DEPENDS extract_${linux_archive}
-    )
-    add_custom_target(copy_linux_configs
-        DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/out/${linux_dir}/.config" "${CMAKE_CURRENT_BINARY_DIR}/out/${linux_dir}/Module.symvers"
-    )
-    # Add download linux vm target
-    add_custom_target(download_vm_linux DEPENDS extract_${linux_archive} copy_linux_configs)
-    set_property(TARGET download_vm_linux PROPERTY EXTRACT_DIR "${CMAKE_CURRENT_BINARY_DIR}/out/${linux_dir}")
+    add_custom_target(extract_${linux_out_target} DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/out/${linux_dir}")
+    # Add linux out target
+    add_custom_target(${linux_out_target} DEPENDS extract_${linux_out_target})
+    set_property(TARGET ${linux_out_target} PROPERTY EXTRACT_DIR "${CMAKE_CURRENT_BINARY_DIR}/out/${linux_dir}")
+    # Pass out directory back to parent
+    set(${linux_out_dir} "${CMAKE_CURRENT_BINARY_DIR}/out/${linux_dir}" PARENT_SCOPE)
 endfunction(DownloadLinux)
+
+# Function for configuring the Linux source located at 'linux_dir' with given
+# config (linux_config_location) and symvers (linux_symvers_location)
+function(ConfigureLinux linux_dir linux_config_location linux_symvers_location configure_linux_target)
+    # Get any existing dependencies for configuring linux
+    cmake_parse_arguments(PARSE_ARGV 4 CONFIGURE_LINUX
+        ""
+        ""
+        "DEPENDS"
+    )
+    if (NOT "${CONFIGURE_LINUX_UNPARSED_ARGUMENTS}" STREQUAL "")
+        message(FATAL_ERROR "Unknown arguments to ConfigureLinux")
+    endif()
+    # Copy linux config & symvers
+    add_custom_command(OUTPUT ${linux_dir}/.config ${linux_dir}/Module.symvers
+        COMMAND ${CMAKE_COMMAND} -E copy "${linux_config_location}" "${linux_dir}/.config"
+        COMMAND ${CMAKE_COMMAND} -E copy "${linux_symvers_location}" "${linux_dir}/Module.symvers"
+        VERBATIM
+        DEPENDS  ${CONFIGURE_LINUX_DEPENDS}
+    )
+    # Create copy config target
+    add_custom_target(${configure_linux_target}_copy_configs
+        DEPENDS "${linux_dir}/.config" "${linux_dir}/Module.symvers"
+    )
+    # Prepare/Configure Linux Build Directory
+    add_custom_command(OUTPUT ${linux_dir}/.config.old
+        COMMAND bash -c "make oldconfig"
+        COMMAND bash -c "make prepare"
+        COMMAND bash -c "make modules_prepare"
+        VERBATIM
+        WORKING_DIRECTORY ${linux_dir}
+        DEPENDS ${configure_linux_target}_copy_configs ${CONFIGURE_LINUX_DEPENDS}
+    )
+    add_custom_target(${configure_linux_target} DEPENDS "${linux_dir}/.config.old")
+endfunction(ConfigureLinux)
 
 # Function to define a linux kernel module. Given the directory to the
 # kernel module
@@ -109,23 +120,32 @@ function(DefineLinuxModule module_dir)
         "DEPENDS;INCLUDES")
     # We require the linux source for compiling our kernel modules
     if (NOT TARGET download_vm_linux)
-        DownloadLinux()
+        # Use the linux md5 hash if its passed in
+        set(linux_md5 "")
+        if(LINUX_MD5)
+            set(linux_md5 "${LINUX_MD5}")
+        endif()
+        # Use the linux major and minor if its passed in
+        if(LINUX_MAJOR AND LINUX_MINOR)
+            set(linux_major ${LINUX_MAJOR})
+            set(linux_minor ${LINUX_MINOR})
+        else()
+            # Else default to a pre-defined major/minor
+            GetDefaultLinuxMajor(linux_major)
+            GetDefaultLinuxMinor(linux_minor)
+            GetDefaultLinuxMd5(linux_md5)
+        endif()
+        DownloadLinux(${linux_major} ${linux_minor} ${linux_md5} vm_linux_extract_dir download_vm_linux)
+        # Linux config and symvers are to be copied to unpacked archive
+        set(linux_config "${VM_ARTIFACTS_DIR}/linux_configs/${linux_major}.${linux_minor}/config")
+        set(linux_symvers "${VM_ARTIFACTS_DIR}/linux_configs/${linux_major}.${linux_minor}/Module.symvers")
+        ConfigureLinux(${vm_linux_extract_dir} ${linux_config} ${linux_symvers} configure_vm_linux
+            DEPENDS download_vm_linux
+        )
     endif()
     # Get linux extract directory (Kbuild directory)
     get_target_property(linux_extract_dir download_vm_linux EXTRACT_DIR)
     get_filename_component(module_name ${module_dir} NAME)
-    # Prepare Linux Build Directory
-    if(NOT TARGET prepare_linux_build)
-        add_custom_command(OUTPUT ${linux_extract_dir}/.config.old
-            COMMAND bash -c "make oldconfig"
-            COMMAND bash -c "make prepare"
-            COMMAND bash -c "make modules_prepare"
-            VERBATIM
-            WORKING_DIRECTORY ${linux_extract_dir}
-            DEPENDS ${DEFINE_LINUX_MODULE_DEPENDS} download_vm_linux
-        )
-        add_custom_target(prepare_linux_build DEPENDS "${linux_extract_dir}/.config.old")
-    endif()
     # Build Linux Module
     set(module_includes "")
     foreach(inc IN LISTS DEFINE_LINUX_MODULE_INCLUDES)
@@ -140,7 +160,7 @@ function(DefineLinuxModule module_dir)
         COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/${module_dir}/${module_name}.ko" "${CMAKE_CURRENT_BINARY_DIR}/${module_name}.ko"
         VERBATIM
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/${module_dir}
-        DEPENDS ${DEFINE_LINUX_MODULE_DEPENDS} prepare_linux_build download_vm_linux
+        DEPENDS ${DEFINE_LINUX_MODULE_DEPENDS} download_vm_linux configure_vm_linux
     )
     # Add target for linux module
     add_custom_target(build_module_${module_name} ALL DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/${module_name}.ko")
