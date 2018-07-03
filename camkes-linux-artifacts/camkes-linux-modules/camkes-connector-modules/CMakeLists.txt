@@ -12,14 +12,21 @@
 
 cmake_minimum_required(VERSION 3.8.2)
 
-include("../linux-artifacts-helpers.cmake")
+if(NOT MODULE_HELPERS_FILE)
+    message(FATAL_ERROR "MODULE_HELPERS_FILE is not defined")
+endif()
+
+include("${MODULE_HELPERS_FILE}")
 
 # We require that CROSSVM is defined in order to build our cross vm camkes modules
 if(NOT CROSSVM_SRC)
     message(FATAL_ERROR "CROSSVM_SRC is not defined")
 endif()
 
+if(NOT CONNECTORS_INCLUDE_DIR)
+    message(FATAL_ERROR "CONNECTORS_INCLUDE_DIR is not defined")
+endif()
+
 DefineLinuxModule(consumes_event INCLUDES ${CROSSVM_SRC}/shared_include)
-DefineLinuxModule(dataport INCLUDES ${CROSSVM_SRC}/shared_include ${VM_ARTIFACTS_DIR}/libs/camkes/include)
-DefineLinuxModule(emits_event INCLUDES ${CROSSVM_SRC}/shared_include ${VM_ARTIFACTS_DIR}/libs/camkes/include)
-DefineLinuxModule(vmm_manager INCLUDES ${CROSSVM_SRC}/shared_include ${VM_ARTIFACTS_DIR}/libs/vchan/includes)
+DefineLinuxModule(dataport INCLUDES ${CROSSVM_SRC}/shared_include ${CONNECTORS_INCLUDE_DIR})
+DefineLinuxModule(emits_event INCLUDES ${CROSSVM_SRC}/shared_include ${CONNECTORS_INCLUDE_DIR})

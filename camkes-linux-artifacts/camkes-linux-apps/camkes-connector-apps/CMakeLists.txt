@@ -12,9 +12,10 @@
 
 cmake_minimum_required(VERSION 3.8.2)
 
-add_subdirectory(consumes_event)
-add_subdirectory(dataport)
-add_subdirectory(emits_event)
-add_subdirectory(helloworld)
-add_subdirectory(string_reverse)
-add_subdirectory(virt)
+add_subdirectory(libs/camkes)
+add_subdirectory(libs/device)
+
+add_subdirectory(pkgs/consumes_event)
+add_subdirectory(pkgs/dataport)
+add_subdirectory(pkgs/emits_event)
+add_subdirectory(pkgs/string_reverse)

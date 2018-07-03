@@ -12,10 +12,5 @@
 
 cmake_minimum_required(VERSION 3.8.2)
 
-project(libcamkeslinux C)
-
-file(GLOB sources src/*.c)
-add_library(camkeslinux STATIC ${sources})
-
-target_include_directories(camkeslinux PUBLIC include include/dataport include/emits_event)
-target_link_libraries(camkeslinux -static-libgcc)
+add_subdirectory(libs/vchan)
+add_subdirectory(virt)

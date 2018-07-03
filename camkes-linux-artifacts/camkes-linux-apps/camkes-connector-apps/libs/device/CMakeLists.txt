@@ -16,4 +16,4 @@ project(libcamkesdevice C)
 
 add_library(camkesdevice STATIC device.c)
 target_include_directories(camkesdevice PUBLIC include)
-target_link_libraries(camkesdevice -static-libgcc)
+target_link_libraries(camkesdevice -static-libgcc -static)
