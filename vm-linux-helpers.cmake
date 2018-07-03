@@ -104,6 +104,39 @@ function(AddOverlayDirToRootfs rootfs_overlay_target rootfs_image rootfs_distro 
     set(output_rootfs_location "${output_rootfs_location}" PARENT_SCOPE)
 endfunction(AddOverlayDirToRootfs)
 
+# Wrapper function to declare object files in an external project and add them to the targeted overlay
+# external_target: Target of external project
+# external_install_dir: The install/binary directory where the files are located
+# overlay_target: The overlay target we are adding files to
+# overlay_root_location: The location in the overlay the file is to be installed. Note all files passed in a given
+# call of this helper will install in the same root location.
+# FILES: A list of files to declare from an external project and add to the given overlay
+function(AddExternalProjFilesToOverlay external_target external_install_dir overlay_target overlay_root_location)
+    # Get the external project files to add the the overlay
+    cmake_parse_arguments(PARSE_ARGV 4 EXTERNAL_PROJ_OVERLAY
+        ""
+        ""
+        "FILES"
+    )
+    # Error checking
+    if (NOT "${EXTERNAL_PROJ_OVERLAY_UNPARSED_ARGUMENTS}" STREQUAL "")
+        message(FATAL_ERROR "Unknown arguments to AddExternalProjFilesToOverlay")
+    endif()
+    # Necessary to provide a least one file
+    if(NOT EXTERNAL_PROJ_OVERLAY_FILES)
+        message(FATAL_ERROR "NO FILES declared in AddExternalProjFilesToOverlay")
+    endif()
+    # Declare the project files
+    DeclareExternalProjObjectFiles(${external_target} ${external_install_dir}
+        FILES ${EXTERNAL_PROJ_OVERLAY_FILES})
+    # Iterate adding each file to the overlay
+    foreach(file IN LISTS EXTERNAL_PROJ_OVERLAY_FILES)
+        get_filename_component(file_name ${file} NAME)
+        AddFileToOverlayDir("${file_name}" ${external_install_dir}/${file} "${overlay_root_location}" ${overlay_target}
+            DEPENDS ${external_target})
+    endforeach()
+endfunction()
+
 # Function for getting the default location of the Linux guest kernel provided
 # by the vm project
 # dest_file: caller variable which is set with the kernel location
