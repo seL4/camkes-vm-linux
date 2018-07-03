@@ -15,6 +15,7 @@ cmake_minimum_required(VERSION 3.8.2)
 project(camkes-vm-linux C)
 
 include("vm-linux-helpers.cmake")
+include("linux-source-helpers.cmake")
 include(ExternalProject)
 
 set(configure_string "")
@@ -29,6 +30,19 @@ set(binary_dir ${CMAKE_BINARY_DIR}/camkes-linux-artifacts)
 
 # Get Custom toolchain for 32 bit Linux
 FindCustomPollyToolchain(LINUX_32BIT_TOOLCHAIN "linux-gcc-7-32bit-pic")
+
+# Setup Linux Sources
+GetDefaultLinuxMajor(linux_major)
+GetDefaultLinuxMinor(linux_minor)
+GetDefaultLinuxMd5(linux_md5)
+DownloadLinux(${linux_major} ${linux_minor} ${linux_md5} vm_linux_extract_dir download_vm_linux)
+# Linux config and symvers are to be copied to unpacked archive
+set(linux_config "${CMAKE_CURRENT_SOURCE_DIR}/linux_configs/${linux_major}.${linux_minor}/config")
+set(linux_symvers "${CMAKE_CURRENT_SOURCE_DIR}/linux_configs/${linux_major}.${linux_minor}/Module.symvers")
+# Configure unpacked archive with config and symvers
+ConfigureLinux(${vm_linux_extract_dir} ${linux_config} ${linux_symvers} configure_vm_linux
+    DEPENDS download_vm_linux
+)
 
 # Build camkes connector apps
 set(connector_apps_stamp_dir ${CMAKE_CURRENT_BINARY_DIR}/camkes-connector-apps-stamp)
