@@ -1,3 +1,4 @@
+/* @TAG(OTHER_GPL) */
 /**
  * @file
  * @section AUTHORS
