@@ -14,9 +14,6 @@ cmake_minimum_required(VERSION 3.8.2)
 
 project(virt C)
 
-add_executable(vmm_manager_tests vmm_manager_tests.c)
-target_link_libraries(vmm_manager_tests vchanlinux)
-
 add_executable(vm_guest_manip vm_guest_manip.c)
 target_link_libraries(vm_guest_manip vchanlinux)
 
