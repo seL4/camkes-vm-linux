@@ -98,10 +98,10 @@ endfunction(AddOverlayToRootfs)
 function(AddOverlayDirToRootfs rootfs_overlay_target rootfs_image rootfs_distro rootfs_overlay_mode
         output_rootfs_location target_name)
     AddOverlayToRootfs("$<TARGET_PROPERTY:${rootfs_overlay_target},ROOTFS_OUTPUT_DIR>" ${rootfs_image} ${rootfs_distro}
-        ${rootfs_overlay_mode} ${output_rootfs_location} ${target_name}
+        ${rootfs_overlay_mode} return_location ${target_name}
         DEPENDS "$<TARGET_PROPERTY:${rootfs_overlay_target},DEPENDS>"
         ${ARGN})
-    set(output_rootfs_location "${output_rootfs_location}" PARENT_SCOPE)
+    set(${output_rootfs_location} "${return_location}" PARENT_SCOPE)
 endfunction(AddOverlayDirToRootfs)
 
 # Wrapper function to declare object files in an external project and add them to the targeted overlay
