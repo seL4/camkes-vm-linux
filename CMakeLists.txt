@@ -82,7 +82,7 @@ if(CAmkESVMDefaultBuildrootOverlay)
             -DLINUX_KERNEL_DIR=${vm_linux_extract_dir}
             -DCROSSVM_SRC=${CMAKE_SOURCE_DIR}/projects/vm/libs/libcrossvm
             -DCONNECTORS_INCLUDE_DIR=${CMAKE_CURRENT_SOURCE_DIR}/camkes-linux-artifacts/camkes-linux-apps/camkes-connector-apps/libs/camkes/include
-            -DMODULE_HELPERS_FILE=${CMAKE_CURRENT_SOURCE_DIR}/camkes-linux-artifacts/camkes-linux-modules/linux-module-helpers.cmake
+            -DMODULE_HELPERS_FILE=${CMAKE_CURRENT_SOURCE_DIR}/linux-module-helpers.cmake
     )
 
     # Declare camkes connector apps
@@ -134,7 +134,7 @@ if(CAmkESVMDefaultBuildrootOverlay)
                 -DCMAKE_TOOLCHAIN_FILE=${LINUX_32BIT_TOOLCHAIN}
                 -DCROSSVM_SRC=${CMAKE_SOURCE_DIR}/projects/vm/libs/libcrossvm
                 -DVCHAN_INCLUDE_DIR=${CMAKE_CURRENT_SOURCE_DIR}/camkes-linux-artifacts/camkes-linux-apps/camkes-vchan-apps/libs/vchan/includes
-                -DMODULE_HELPERS_FILE=${CMAKE_CURRENT_SOURCE_DIR}/camkes-linux-artifacts/camkes-linux-modules/linux-module-helpers.cmake
+                -DMODULE_HELPERS_FILE=${CMAKE_CURRENT_SOURCE_DIR}/linux-module-helpers.cmake
                 -DLINUX_KERNEL_DIR=${vm_linux_extract_dir}
         )
         # Declare vchan apps
