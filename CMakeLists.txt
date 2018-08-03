@@ -35,7 +35,7 @@ if(CAmkESVMDefaultBuildrootOverlay)
     set(binary_dir ${CMAKE_BINARY_DIR}/camkes-linux-artifacts)
 
     # Get Custom toolchain for 32 bit Linux
-    FindCustomPollyToolchain(LINUX_32BIT_TOOLCHAIN "linux-gcc-7-32bit-pic")
+    FindCustomPollyToolchain(LINUX_32BIT_TOOLCHAIN "linux-gcc-32bit-pic")
 
     # Setup Linux Sources
     GetDefaultLinuxMajor(linux_major)
