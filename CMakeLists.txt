@@ -98,7 +98,6 @@ if(CAmkESVMDefaultBuildrootOverlay)
 
     # Add additional init scripts to the default buildroot overlay
     AddFileToOverlayDir("init" ${CMAKE_CURRENT_LIST_DIR}/camkes-linux-artifacts/camkes-linux-init-scripts/buildroot_init/init_template "." default_buildroot_overlay)
-    AddFileToOverlayDir("S90camkes_init" ${CMAKE_CURRENT_LIST_DIR}/camkes-linux-artifacts/camkes-linux-init-scripts/buildroot_init/camkes_init "etc/init.d" default_buildroot_overlay)
 
     # Install VChan artifacts
     if(CAmkESVMLinuxVchan)
