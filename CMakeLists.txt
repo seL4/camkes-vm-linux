@@ -80,7 +80,7 @@ if(CAmkESVMDefaultBuildrootOverlay)
             -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
             -DCMAKE_TOOLCHAIN_FILE=${LINUX_32BIT_TOOLCHAIN}
             -DLINUX_KERNEL_DIR=${vm_linux_extract_dir}
-            -DCROSSVM_SRC=${CMAKE_SOURCE_DIR}/projects/vm/libs/libcrossvm
+            -DCROSSVM_SRC=${CMAKE_CURRENT_SOURCE_DIR}/../vm/libs/libcrossvm
             -DCONNECTORS_INCLUDE_DIR=${CMAKE_CURRENT_SOURCE_DIR}/camkes-linux-artifacts/camkes-linux-apps/camkes-connector-apps/libs/camkes/include
             -DMODULE_HELPERS_FILE=${CMAKE_CURRENT_SOURCE_DIR}/linux-module-helpers.cmake
     )
@@ -132,7 +132,7 @@ if(CAmkESVMDefaultBuildrootOverlay)
             CMAKE_ARGS
                 -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
                 -DCMAKE_TOOLCHAIN_FILE=${LINUX_32BIT_TOOLCHAIN}
-                -DCROSSVM_SRC=${CMAKE_SOURCE_DIR}/projects/vm/libs/libcrossvm
+                -DCROSSVM_SRC=${CMAKE_CURRENT_SOURCE_DIR}/../vm/libs/libcrossvm
                 -DVCHAN_INCLUDE_DIR=${CMAKE_CURRENT_SOURCE_DIR}/camkes-linux-artifacts/camkes-linux-apps/camkes-vchan-apps/libs/vchan/includes
                 -DMODULE_HELPERS_FILE=${CMAKE_CURRENT_SOURCE_DIR}/linux-module-helpers.cmake
                 -DLINUX_KERNEL_DIR=${vm_linux_extract_dir}
