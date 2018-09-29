@@ -34,12 +34,18 @@ function(DefineLinuxModule module_dir)
             set(module_includes "${module_includes} -I${inc}")
         endif()
     endforeach()
+
+    # Re-copy the files into the build directory whenever they are updated
+    file(GLOB_RECURSE ${module_name}_files ${CMAKE_CURRENT_SOURCE_DIR}/${module_dir}/**/* ${CMAKE_CURRENT_SOURCE_DIR}/${module_dir}/*)
+
     add_custom_command(OUTPUT ${module_name}.ko
+        COMMAND bash -c "cp -a ${CMAKE_CURRENT_SOURCE_DIR}/${module_dir} ${CMAKE_CURRENT_BINARY_DIR}"
+        COMMAND cd ${CMAKE_CURRENT_BINARY_DIR}/${module_dir}
         COMMAND bash -c "make MODULE_INCLUDES=\"${module_includes}\" KHEAD=${LINUX_KERNEL_DIR}"
-        COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/${module_dir}/${module_name}.ko" "${CMAKE_CURRENT_BINARY_DIR}/${module_name}.ko"
+        COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_BINARY_DIR}/${module_dir}/${module_name}.ko" "${CMAKE_CURRENT_BINARY_DIR}/${module_name}.ko"
         VERBATIM
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/${module_dir}
-        DEPENDS ${DEFINE_LINUX_MODULE_DEPENDS}
+        DEPENDS ${DEFINE_LINUX_MODULE_DEPENDS} ${${module_name}_files}
     )
     # Add target for linux module
     add_custom_target(build_module_${module_name} ALL DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/${module_name}.ko")
