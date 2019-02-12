@@ -37,8 +37,15 @@ if(CAmkESVMDefaultBuildrootOverlay)
     # Add packages,libs and modules used in the linux vm
     set(binary_dir ${CMAKE_BINARY_DIR}/camkes-linux-artifacts)
 
-    # Get Custom toolchain for 32 bit Linux
-    FindCustomPollyToolchain(LINUX_32BIT_TOOLCHAIN "linux-gcc-32bit-pic")
+    if(KernelSel4ArchX86_64)
+      # Get Custom toolchain for 64-bit Linux
+      FindCustomPollyToolchain(LINUX_TOOLCHAIN "linux-gcc-64bit-pic")
+      set(arch_size_dir "64")
+    else()
+      # Get Custom toolchain for 32-bit Linux
+      FindCustomPollyToolchain(LINUX_TOOLCHAIN "linux-gcc-32bit-pic")
+      set(arch_size_dir "32")
+    endif()
 
     # Setup Linux Sources
     GetDefaultLinuxMajor(linux_major)
@@ -48,11 +55,11 @@ if(CAmkESVMDefaultBuildrootOverlay)
     # Linux config and symvers are to be copied to unpacked archive
     set(
         linux_config
-        "${CMAKE_CURRENT_SOURCE_DIR}/linux_configs/${linux_major}.${linux_minor}/config"
+        "${CMAKE_CURRENT_SOURCE_DIR}/linux_configs/${linux_major}.${linux_minor}/${arch_size_dir}/config"
     )
     set(
         linux_symvers
-        "${CMAKE_CURRENT_SOURCE_DIR}/linux_configs/${linux_major}.${linux_minor}/Module.symvers"
+        "${CMAKE_CURRENT_SOURCE_DIR}/linux_configs/${linux_major}.${linux_minor}/${arch_size_dir}/Module.symvers"
     )
     # Configure unpacked archive with config and symvers
     ConfigureLinux(
