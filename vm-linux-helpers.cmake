@@ -11,9 +11,13 @@
 #
 
 cmake_minimum_required(VERSION 3.8.2)
-
 RequireFile(UPDATE_INITRD_ROOTFS_PATH update_dtb_initrd.py PATHS "${CMAKE_CURRENT_LIST_DIR}/tools")
 set(VM_LINUX_PROJECT_DIR "${CMAKE_CURRENT_LIST_DIR}" CACHE INTERNAL "")
+if(KernelSel4ArchX86_64)
+    set(arch_size_dir "64")
+else()
+    set(arch_size_dir "32")
+endif()
 
 # Function to add a given file to an overlay directory.
 # filename: The preferred name of the file in the overlay
@@ -227,7 +231,7 @@ endfunction(UpdateDtbFromInitrd)
 # by the vm project
 # dest_file: caller variable which is set with the kernel location
 function(GetDefaultLinuxKernelFile dest_file)
-    set(${dest_file} ${VM_LINUX_PROJECT_DIR}/images/kernel/default_bzimage_4.8.16 PARENT_SCOPE)
+    set(${dest_file} ${VM_LINUX_PROJECT_DIR}/images/kernel/${arch_size_dir}/default_bzimage_4.8.16 PARENT_SCOPE)
 endfunction(GetDefaultLinuxKernelFile)
 
 # Function for getting the default location of the Linux guest rootfs provided
@@ -235,7 +239,7 @@ endfunction(GetDefaultLinuxKernelFile)
 # dest_file: caller variable which is set with the rootfs location
 function(GetDefaultLinuxRootfsFile dest_file)
     set(
-        ${dest_file} ${VM_LINUX_PROJECT_DIR}/images/rootfs/default_buildroot_rootfs.cpio
+        ${dest_file} ${VM_LINUX_PROJECT_DIR}/images/rootfs/${arch_size_dir}/default_buildroot_rootfs-bare.cpio
         PARENT_SCOPE
     )
 endfunction(GetDefaultLinuxRootfsFile)
