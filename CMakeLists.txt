@@ -21,11 +21,12 @@ include(ExternalProject)
 set(configure_string "")
 
 config_option(CAmkESVMDefaultBuildrootOverlay CAMKES_VM_DEFAULT_BUILDROOT_OVERLAY "Enable the building of the default buildroot overlay"
-    DEFAULT OFF)
+    DEFAULT OFF
+    DEPENDS "KernelArchX86")
 
 config_option(CAmkESVMLinuxVchan CAMKES_VM_LINUX_VCHAN "Enable installation of VChan packages and modules in the guest VM"
     DEFAULT OFF
-    DEPENDS "CAmkESVMDefaultBuildrootOverlay"
+    DEPENDS "CAmkESVMDefaultBuildrootOverlay;KernelArchX86"
 )
 
 add_config_library(camkes-vm-linux "${configure_string}")
