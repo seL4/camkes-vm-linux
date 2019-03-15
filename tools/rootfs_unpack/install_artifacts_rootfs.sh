@@ -29,6 +29,13 @@ error_exit() {
     exit 1
 }
 
+gzip_rootfs_cpio() {
+    echo -e "\e[1;96mGzipping rootfs cpio image\e[0m"
+    pushd ${OUTPUT_DIR}
+    gzip -k ${OUTPUT_NAME}
+    popd
+}
+
 split_initrd() {
     echo -e "\e[1;96mExtracting gz image from initrd\e[0m"
     start=`grep -a -b -m 1 --only-matching '070701' $1 | head -1 | cut -f 1 -d :`
@@ -44,9 +51,16 @@ split_initrd() {
 
 unpack_rootfs_cpio() {
     echo -e "\e[1;96mUnpacking rootfs cpio image: $1\e[0m"
+    UNPACK_FILE=$1
+    if [ ${UNPACK_FILE: -3} == ".gz" ]; then
+        GUNZIP_FILE=`basename ${UNPACK_FILE}`
+        gunzip -c ${UNPACK_FILE} > ${OUTPUT_DIR}/${GUNZIP_FILE::-3}
+        UNPACK_FILE="../${GUNZIP_FILE::-3}"
+        echo -e "\e[1;96mUnzipped gz image to ${GUNZIP_FILE}\e[0m"
+    fi
     mkdir -p ${OUTPUT_DIR}/unpack
     pushd ${OUTPUT_DIR}/unpack
-    fakeroot cpio -id --no-preserve-owner --preserve-modification-time < $1 || error_exit "\e[0;31mUnpacking CPIO failed\e[0m"
+    fakeroot cpio -id --no-preserve-owner --preserve-modification-time < ${UNPACK_FILE} || error_exit "\e[0;31mUnpacking CPIO failed\e[0m"
     popd
 }
 
@@ -151,6 +165,10 @@ do
         OUTPUT_DIR="${arg#*=}"
         shift
         ;;
+        -z|--gzip)
+        ZIP=YES
+        shift
+        ;;
         *)
             echo "Unknown argument: ${arg}"
             usage
@@ -188,6 +206,10 @@ repack_rootfs_cpio
 
 if [ ${SPLIT+x} ]; then
     build_initrd
+fi
+
+if [ ${ZIP+x} ]; then
+    gzip_rootfs_cpio
 fi
 
 OUTPUT=`pwd`/${OUTPUT_DIR}/rootfs_out.cpio

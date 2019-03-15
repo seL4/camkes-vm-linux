@@ -65,7 +65,7 @@ function(AddOverlayToRootfs rootfs_overlay rootfs_image rootfs_distro rootfs_ove
     endif()
     # Get any existing dependencies when adding overlay directory
     cmake_parse_arguments(PARSE_ARGV 6 ROOTFS_OVERLAY
-        "SPLITGZ"
+        "SPLITGZ;GZIP"
         ""
         "DEPENDS;CUSTOM_INIT"
     )
@@ -80,8 +80,12 @@ function(AddOverlayToRootfs rootfs_overlay rootfs_image rootfs_distro rootfs_ove
     if (NOT ${ROOTFS_OVERLAY_CUSTOM_INIT} STREQUAL "")
         set(additional_install_flags "${additional_install_flags} --custom-init=${ROOTFS_OVERLAY_CUSTOM_INIT}")
     endif()
+    if (${ROOTFS_OVERLAY_GZIP})
+        set(additional_install_flags "${additional_install_flags} --gzip")
+        set(gzip_ext ".gz")
+    endif()
     # Command to install the rootfs artifacts
-    add_custom_command(OUTPUT out_${target_name}/output_overlay_rootfs.cpio
+    add_custom_command(OUTPUT out_${target_name}/output_overlay_rootfs.cpio${gzip_ext}
         COMMAND bash -c "${VM_LINUX_PROJECT_DIR}/tools/rootfs_unpack/install_artifacts_rootfs.sh --mode=${rootfs_overlay_mode} --image=${rootfs_image} \
         --distro=${rootfs_distro} --root-install=${rootfs_overlay} --output-image-name=output_overlay_rootfs.cpio \
         --output-dir=${CMAKE_CURRENT_BINARY_DIR}/out_${target_name} ${additional_install_flags}"
@@ -89,8 +93,8 @@ function(AddOverlayToRootfs rootfs_overlay rootfs_image rootfs_distro rootfs_ove
         DEPENDS ${rootfs_overlay} ${ROOTFS_OVERLAY_DEPENDS}
     )
     # Create custom target for the command
-    add_custom_target(${target_name} DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/out_${target_name}/output_overlay_rootfs.cpio")
-    set(${output_rootfs_location} "${CMAKE_CURRENT_BINARY_DIR}/out_${target_name}/output_overlay_rootfs.cpio" PARENT_SCOPE)
+    add_custom_target(${target_name} DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/out_${target_name}/output_overlay_rootfs.cpio${gzip_ext}")
+    set(${output_rootfs_location} "${CMAKE_CURRENT_BINARY_DIR}/out_${target_name}/output_overlay_rootfs.cpio${gzip_ext}" PARENT_SCOPE)
 endfunction(AddOverlayToRootfs)
 
 # Wrapper function to add an overlay directory to a rootfs image
