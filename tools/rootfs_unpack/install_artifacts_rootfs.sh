@@ -52,10 +52,10 @@ split_initrd() {
 unpack_rootfs_cpio() {
     echo -e "\e[1;96mUnpacking rootfs cpio image: $1\e[0m"
     UNPACK_FILE=$1
-    if [ ${UNPACK_FILE: -3} == ".gz" ]; then
-        GUNZIP_FILE=`basename ${UNPACK_FILE}`
+    if [[ "$UNPACK_FILE" = *.gz ]]; then
+        GUNZIP_FILE=${UNPACK_FILE##*/}
         gunzip -c ${UNPACK_FILE} > ${OUTPUT_DIR}/${GUNZIP_FILE::-3}
-        UNPACK_FILE="../${GUNZIP_FILE::-3}"
+        UNPACK_FILE="../${GUNZIP_FILE%.gz}"
         echo -e "\e[1;96mUnzipped gz image to ${GUNZIP_FILE}\e[0m"
     fi
     mkdir -p ${OUTPUT_DIR}/unpack
