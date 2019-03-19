@@ -109,7 +109,7 @@ install_fs_artifacts() {
     else
         cp -r ${ROOT_INSTALL} ${OUTPUT_DIR}/unpack/sel4_vm_artifacts/.
     fi
-    if [ ${CUSTOM_INIT+x} ]; then
+    if [ -n "$CUSTOM_INIT" ]; then
         cp ${CUSTOM_INIT} ${OUTPUT_DIR}/unpack/init
     fi
 }
@@ -176,7 +176,7 @@ do
     esac
 done
 
-if [ -z ${MODE+x} ] || [ -z ${IMAGE+x} ] || [ -z ${DISTRO+x} ] || [ -z ${ROOT_INSTALL+x} ]; then
+if [ -z "$MODE" ] || [ -z "$IMAGE" ] || [ -z "$DISTRO" ] || [ -z "$ROOT_INSTALL" ]; then
     usage
 fi
 
@@ -187,7 +187,7 @@ echo "CUSTOM-INIT=${CUSTOM_INIT}"
 
 mkdir -p ${OUTPUT_DIR}
 
-if [ ${SPLIT+x} ]; then
+if [ -n "$SPLIT" ]; then
     split_initrd ${IMAGE}
     CPIO=${OUTPUT_DIR}/`basename ${IMAGE}`
 else
@@ -204,11 +204,11 @@ fi
 
 repack_rootfs_cpio
 
-if [ ${SPLIT+x} ]; then
+if [ -n "$SPLIT" ]; then
     build_initrd
 fi
 
-if [ ${ZIP+x} ]; then
+if [ -n "$ZIP" ]; then
     gzip_rootfs_cpio
 fi
 
