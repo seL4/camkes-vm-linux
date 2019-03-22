@@ -12,6 +12,7 @@
 
 cmake_minimum_required(VERSION 3.8.2)
 
+RequireFile(UPDATE_INITRD_ROOTFS_PATH update_dtb_initrd.py PATHS "${CMAKE_CURRENT_LIST_DIR}/tools")
 set(VM_LINUX_PROJECT_DIR "${CMAKE_CURRENT_LIST_DIR}" CACHE INTERNAL "")
 
 # Function to add a given file to an overlay directory.
@@ -140,6 +141,26 @@ function(AddExternalProjFilesToOverlay external_target external_install_dir over
             DEPENDS ${external_target})
     endforeach()
 endfunction()
+
+# Function takes an input dtb file and input rootfs file and creates a new dtb with
+# updated initrd-start and initrd-end fields. These fields reflect the size of the
+# input rootfs file.
+function(UpdateDtbFromInitrd input_dtb_file input_rootfs_file initrd_start_location output_dtb_target output_dtb_file)
+    get_filename_component(dtb_basename ${input_dtb_file} NAME)
+    cmake_parse_arguments(PARSE_ARGV 5 INITRD_DTB
+        ""
+        ""
+        "DEPENDS"
+    )
+    set(output_dtb_filename "gen_dtb_${dtb_basename}")
+    add_custom_command(OUTPUT ${output_dtb_filename}
+        COMMAND python "${UPDATE_INITRD_ROOTFS_PATH}" --dtb "${input_dtb_file}" --output_dtb "${CMAKE_CURRENT_BINARY_DIR}/${output_dtb_filename}" --initrd "${input_rootfs_file}" --initrd_start "${initrd_start_location}"
+        VERBATIM
+        DEPENDS ${input_dtb_file} ${input_rootfs_file} ${INITRD_DTB_DEPENDS}
+    )
+    add_custom_target(${output_dtb_target} DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/${output_dtb_filename}")
+    set(${output_dtb_file} "${CMAKE_CURRENT_BINARY_DIR}/${output_dtb_filename}" PARENT_SCOPE)
+endfunction(UpdateDtbFromInitrd)
 
 # Function for getting the default location of the Linux guest kernel provided
 # by the vm project
