@@ -132,6 +132,7 @@ function(AddExternalProjFilesToOverlay external_target external_install_dir over
         message(FATAL_ERROR "NO FILES declared in AddExternalProjFilesToOverlay")
     endif()
     # Declare the project files
+    include(external-project-helpers)
     DeclareExternalProjObjectFiles(${external_target} ${external_install_dir}
         FILES ${EXTERNAL_PROJ_OVERLAY_FILES})
     # Iterate adding each file to the overlay
