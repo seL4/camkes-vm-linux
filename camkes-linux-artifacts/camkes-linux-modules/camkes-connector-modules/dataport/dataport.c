@@ -1,5 +1,5 @@
 /*
- * Copyright 2018, Data61
+ * Copyright 2019, Data61
  * Commonwealth Scientific and Industrial Research Organisation (CSIRO)
  * ABN 41 687 119 230.
  *
@@ -11,232 +11,137 @@
  */
 
 /* Linux kernel module for cross vm dataports.
- * This allows the creation of device files which represent cross vm dataports
- * (ie. shared memory regions between linux processes and camkes components).
- * This module implements mmap for dataport files so linux processes can mmap
- * dataport files to establish shared memory. Additionally, it takes care of
- * making the relevant hypercalls to invoke the vmm to set up shared memory
- * between the guest (linux) and camkes.
+ * This allows the parsing of cross vm dataports advertised as a PCI device.
+ * Cross vm dataports being shared memory regions between linux processes and
+ * camkes components). This module utilises userspace io to allow linux
+ * processes to mmap the dataports.
  */
 
+#include <linux/device.h>
 #include <linux/module.h>
-#include <linux/kernel.h>
-#include <linux/init.h>
-#include <linux/fs.h>
-#include <linux/slab.h>
-#include <linux/mm.h>
+#include <linux/pci.h>
+#include <linux/pci_ids.h>
+#include <linux/uio_driver.h>
+#include <asm/io.h>
 
-#include <asm/uaccess.h>
-#include <asm/kvm_para.h>
+/* This is an 'abitrary' custom device id we use to match on our dataports
+ * pci driver */
+#define PCI_DATAPORT_DEVICE_ID 0xa111
 
-#include <dataport/ioctl_commands.h>
-#include <cross_vm_shared/cross_vm_shared_dataport.h>
+typedef struct dataports {
+	struct pci_dev *dev;
+    struct uio_info *uio;
+} dataports_t;
 
-#define DEVICE_NAME "dataport"
-#define MAX_NUM_DATAPORTS 256
-#define BUF_SIZE 64
-#define IOCTL_CMD_SIZE 64
+dataports_t *dataports;
 
-typedef struct dataport {
-    unsigned long id;
-    size_t size;
-    void* data;
-    phys_addr_t paddr;
-} dataport_t;
-
-static dataport_t dataports[MAX_NUM_DATAPORTS];
-static int major_number;
-
-static void dataport_vmcall_share(dataport_t *dataport)
+static int dataports_pci_probe(struct pci_dev *dev,
+					const struct pci_device_id *id)
 {
-    /* Tell the vmm the id, guest paddr and size of the dataport.
-     * The vmm will replace the mappings at the specified guest paddr
-     * with mappings to frames backing the dataport specified by id.
-     */
-    kvm_hypercall4(DATAPORT_VMCALL_HANDLER_TOKEN,
-                   DATAPORT_CMD_SHARE,
-                   dataport->id,
-                   dataport->paddr,
-                   dataport->size);
-}
+    struct uio_info *uio;
+    int num_bars;
+    int err = 0;
+    int unmap = 0;
+    int i = 0;
 
-static int dataport_is_allocated(dataport_t *dataport)
-{
-    return dataport->data != NULL;
-}
+	dataports = kzalloc(sizeof(dataports_t), GFP_KERNEL);
+	if (!dataports) {
+        printk("Failed to initalize dataports\n");
+		return -ENOMEM;
+	}
 
-static void dataport_free(dataport_t *dataport)
-{
-    // TODO vmcall to map the original frames back in
-    kfree(dataport->data);
-    dataport->data = NULL;
-}
-
-static dataport_t* dataport_get(unsigned long dataport_id)
-{
-    if (dataport_id >= MAX_NUM_DATAPORTS) {
-        return NULL;
+    uio = kzalloc(sizeof(struct uio_info), GFP_KERNEL);
+	if (!uio) {
+		printk("Failed to initialize uio information\n");
+		kfree(dataports);
+        return -ENOMEM;
     }
 
-    return &dataports[dataport_id];
-}
-
-static dataport_t* dataport_allocate(unsigned long dataport_id,
-                                     unsigned long size)
-{
-    dataport_t *dataport = dataport_get(dataport_id);
-    if (dataport == NULL) {
-        return NULL;
+	if (pci_enable_device(dev)) {
+        goto free_alloc;
     }
 
-    if (dataport_is_allocated(dataport)) {
-        dataport_free(dataport);
+	if (pci_request_regions(dev, "dataports")) {
+        goto disable_pci;
     }
 
-    dataport->id = dataport_id;
-    dataport->size = size;
-
-    // dataports are guest-physically contiguous
-    dataport->data = kmalloc(size, 0);
-    dataport->paddr = virt_to_phys(dataport->data);
-
-    return dataport;
-}
-
-static long dataport_ioctl(struct file *filp,
-                             unsigned int ioctl_num,
-                             unsigned long ioctl_param)
-{
-    int error;
-    int minor;
-    dataport_t *dataport;
-    __user char* user_buf;
-
-    minor = iminor(filp->f_path.dentry->d_inode);
-
-    user_buf = (__user char*)ioctl_param;
-
-    if (ioctl_num == DATAPORT_ALLOCATE) {
-        unsigned long size;
-
-        error = kstrtoul_from_user(user_buf, IOCTL_CMD_SIZE, 0, &size);
-
-        if (error) {
-            printk(KERN_ERR "invalid dataport size");
-            return -1;
-        }
-
-        dataport = dataport_allocate(minor, size);
-
-        if (dataport == NULL) {
-            printk(KERN_ERR "failed to allocate dataport");
-            return -1;
-        }
-
-        dataport_vmcall_share(dataport);
-    } else {
-        char buf[BUF_SIZE];
-
-        dataport = dataport_get(minor);
-
-        if (dataport == NULL) {
-            printk(KERN_ERR "failed to retrieve dataport with id %d", minor);
-            return -1;
-        } else if (!dataport_is_allocated(dataport)) {
-            printk(KERN_ERR "dataport %d is not allocated", minor);
-            return -1;
-        }
-
-        switch (ioctl_num) {
-        case DATAPORT_GET_PADDR:
-            snprintf(buf, BUF_SIZE, "%u", dataport->paddr);
-            error = copy_to_user(user_buf, buf, strlen(buf) + 1);
-
-            if (error) {
-                return -1;
-            }
-
-            break;
-        case DATAPORT_GET_SIZE:
-            snprintf(buf, BUF_SIZE, "%u", dataport->size);
-            error = copy_to_user(user_buf, buf, strlen(buf) + 1);
-
-            if (error) {
-                return -1;
-            }
-
+    for (i = 0; i < MAX_UIO_MAPS; i++) {
+        uio->mem[i].addr = pci_resource_start(dev, i);
+        if (!uio->mem[i].addr) {
+            /* We assume the first NULL bar is the end
+             * Implying that all dataports are passed sequentially (i.e. no gaps) */
             break;
         }
+
+        uio->mem[i].internal_addr = ioremap_cache(pci_resource_start(dev, i),
+                         pci_resource_len(dev, i));
+        if (!uio->mem[i].internal_addr) {
+            err = 1;
+            break;
+        }
+        uio->mem[i].size = pci_resource_len(dev, i);
+        uio->mem[i].memtype = UIO_MEM_PHYS;
+    }
+    num_bars = i;
+	if (err) {
+        goto unmap_bars;
+    }
+    printk("%d Dataports initalised\n", num_bars);
+
+    dataports->uio = uio;
+	dataports->dev = dev;
+
+	uio->irq = -1;
+	uio->name = "dataports";
+	uio->version = "0.0.1";
+
+	if (uio_register_device(&dev->dev, uio)) {
+        goto unmap_bars;
     }
 
-    return 0;
+	pci_set_drvdata(dev, uio);
+
+	return 0;
+unmap_bars:
+    for (unmap = 0; unmap < num_bars; unmap++) {
+	    iounmap(uio->mem[unmap].internal_addr);
+    }
+	pci_release_regions(dev);
+disable_pci:
+	pci_disable_device(dev);
+free_alloc:
+	kfree(uio);
+    kfree(dataports);
+    return -ENODEV;
 }
 
-static int dataport_mmap(struct file *filp,
-                           struct vm_area_struct *vma)
+static void dataports_pci_remove(struct pci_dev *dev)
 {
-    int minor;
-    int error;
-    dataport_t *dataport;
-
-    minor = iminor(filp->f_path.dentry->d_inode);
-
-    printk(KERN_INFO "%s received mmap for minor %d\n",
-           DEVICE_NAME, minor);
-
-    dataport = dataport_get(minor);
-
-    if (dataport == NULL) {
-        printk(KERN_ERR "failed to retrieve dataport with id %d", minor);
-        return -ENODEV;
-    }
-
-    error = remap_pfn_range(vma,
-                            vma->vm_start,
-                            dataport->paddr >> PAGE_SHIFT,
-                            dataport->size,
-                            vma->vm_page_prot);
-
-    if (error < 0) {
-        printk(KERN_ERR "%s mmap of dataport %d failed\n",
-               DEVICE_NAME, minor);
-        return -EAGAIN;
-    }
-
-    return 0;
+	struct uio_info *uio = pci_get_drvdata(dev);
+	uio_unregister_device(uio);
+	pci_release_regions(dev);
+	pci_disable_device(dev);
+    kfree(uio);
+    kfree(dataports);
 }
 
-struct file_operations fops = {
-    .mmap = dataport_mmap,
-    .unlocked_ioctl = dataport_ioctl,
+static struct pci_device_id dataports_pci_ids[] = {
+	{
+		.vendor =	    PCI_VENDOR_ID_REDHAT_QUMRANET,
+		.device =	    PCI_DATAPORT_DEVICE_ID,
+		.subvendor =	PCI_ANY_ID,
+		.subdevice =	PCI_ANY_ID,
+	},
+	{0,}
 };
 
-static int __init dataport_init(void) {
-    int i;
-    major_number = register_chrdev(0, DEVICE_NAME, &fops);
+static struct pci_driver dataports_pci_driver = {
+	.name = "dataports",
+	.id_table = dataports_pci_ids,
+	.probe = dataports_pci_probe,
+	.remove = dataports_pci_remove,
+};
 
-    printk(KERN_INFO "%s initialized with major number %d\n", DEVICE_NAME, major_number);
-
-    for (i = 0; i < MAX_NUM_DATAPORTS; i++) {
-        dataports[i].data = NULL;
-    }
-
-    return 0;
-}
-
-static void __exit dataport_exit(void) {
-    int i;
-
-    unregister_chrdev(major_number, DEVICE_NAME);
-
-    for (i = 0; i < MAX_NUM_DATAPORTS; i++) {
-        if (dataports[i].data != NULL) {
-            dataport_free(&dataports[i]);
-        }
-    }
-
-    printk(KERN_INFO "%s exit\n", DEVICE_NAME);
-}
-
-module_init(dataport_init);
-module_exit(dataport_exit);
+module_pci_driver(dataports_pci_driver);
+MODULE_DEVICE_TABLE(pci, dataports_pci_ids);
+MODULE_LICENSE("GPL v2");
