@@ -32,6 +32,7 @@ config_option(CAmkESVMLinuxVchan CAMKES_VM_LINUX_VCHAN "Enable installation of V
 add_config_library(camkes-vm-linux "${configure_string}")
 
 if(CAmkESVMDefaultBuildrootOverlay)
+    include(cross_compiling)
     # Add packages,libs and modules used in the linux vm
     set(binary_dir ${CMAKE_BINARY_DIR}/camkes-linux-artifacts)
 
