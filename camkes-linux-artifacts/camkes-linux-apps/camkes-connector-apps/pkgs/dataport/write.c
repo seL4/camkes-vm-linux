@@ -19,33 +19,36 @@
 #include <sys/stat.h>
 #include <sys/mman.h>
 
-#include "dataport.h"
-
 int main(int argc, char *argv[]) {
 
-    if (argc != 2) {
-        printf("Usage: %s file\n\n"
+    if (argc != 3) {
+        printf("Usage: %s file dataport_size\n\n"
                "Writes stdin to a specified dataport file as a c string",
                argv[0]);
         return 1;
     }
 
     char *dataport_name = argv[1];
+    int length = atoi(argv[2]);
 
     int fd = open(dataport_name, O_RDWR);
     assert(fd >= 0);
 
-    ssize_t size = dataport_get_size(fd);
-    char *dataport = dataport_mmap(fd);
+    char *dataport;
+    if ((dataport = mmap(NULL, length, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0 * getpagesize())) == (caddr_t)-1) {
+        printf("mmap failed\n");
+        close(fd);
+    }
 
     int i = 0;
     char ch;
-    while ((ch = getchar()) != EOF && i < size - 1) {
+    while ((ch = getchar()) != EOF && i < length - 1) {
         dataport[i] = ch;
         i++;
     }
     dataport[i] = '\0';
 
+    munmap(dataport, length);
     close(fd);
 
     return 0;

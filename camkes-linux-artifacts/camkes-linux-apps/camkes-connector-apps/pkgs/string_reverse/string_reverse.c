@@ -19,30 +19,37 @@
 #include <sys/stat.h>
 #include <sys/mman.h>
 
-#include "dataport.h"
 #include "consumes_event.h"
 #include "emits_event.h"
 
 #define READY "/dev/camkes_reverse_ready"
 #define DONE "/dev/camkes_reverse_done"
-#define SRC "/dev/camkes_reverse_src"
-#define DEST "/dev/camkes_reverse_dest"
+#define DATAPORTS_NAME "/dev/uio0"
 
-#define BUFSIZE 8192
+#define BUFSIZE 2048
 char buf[BUFSIZE];
 
 int main(int argc, char *argv[]) {
 
     int ready = open(READY, O_RDWR);
     int done = open(DONE, O_RDWR);
-    int src = open(SRC, O_RDWR);
-    int dest = open(DEST, O_RDWR);
 
-    volatile char *src_data = (volatile char*)dataport_mmap(src);
-    assert(src_data != MAP_FAILED);
+    int dataport_fd = open(DATAPORTS_NAME, O_RDWR);
+    assert(dataport_fd >= 0);
 
-    volatile char *dest_data = (volatile char*)dataport_mmap(dest);
-    assert(dest_data != MAP_FAILED);
+    volatile char *src_data;
+    if ((src_data = mmap(NULL, BUFSIZE, PROT_READ|PROT_WRITE, MAP_SHARED, dataport_fd, 0 * getpagesize())) == (__caddr_t)-1) {
+        printf("mmap src (index 0) failed\n");
+        close(dataport_fd);
+        return -1;
+    }
+    volatile char *dest_data;
+    if ((dest_data = mmap(NULL, BUFSIZE, PROT_READ|PROT_WRITE, MAP_SHARED, dataport_fd, 1 * getpagesize())) == (__caddr_t)-1) {
+        printf("mmap dest (index 1) failed\n");
+        munmap(src_data, BUFSIZE);
+        close(dataport_fd);
+        return -1;
+    }
 
     while (fgets(buf, BUFSIZE, stdin)) {
         int last_idx = strnlen(buf, BUFSIZE - 1) - 1;
@@ -73,8 +80,10 @@ int main(int argc, char *argv[]) {
 
     close(ready);
     close(done);
-    close(src);
-    close(dest);
+    close(dataport_fd);
+
+    munmap(src_data, BUFSIZE);
+    munmap(dest_data, BUFSIZE);
 
     return 0;
 }

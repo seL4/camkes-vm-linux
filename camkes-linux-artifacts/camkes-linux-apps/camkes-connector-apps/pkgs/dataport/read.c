@@ -23,22 +23,28 @@
 
 int main(int argc, char *argv[]) {
 
-    if (argc != 2) {
-        printf("Usage: %s file\n\n"
+    if (argc != 3) {
+        printf("Usage: %s file dataport_size\n\n"
                "Reads the c string contents of a specified dataport file to stdout",
                argv[0]);
         return 1;
     }
 
     char *dataport_name = argv[1];
+    int length = atoi(argv[2]);
 
     int fd = open(dataport_name, O_RDWR);
     assert(fd >= 0);
 
-    char *dataport = dataport_mmap(fd);
+    char *dataport;
+    if ((dataport = mmap(NULL, length, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0 * getpagesize())) == (caddr_t)-1) {
+        printf("mmap failed\n");
+        close(fd);
+    }
 
     printf("%s\n", dataport);
 
+    munmap(dataport, length);
     close(fd);
 
     return 0;
