@@ -14,9 +14,6 @@ cmake_minimum_required(VERSION 3.8.2)
 
 project(dataport C)
 
-add_executable(dataport_init init.c)
-target_link_libraries(dataport_init camkesdevice camkeslinux)
-
 add_executable(dataport_read read.c)
 target_link_libraries(dataport_read camkeslinux)
 

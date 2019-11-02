@@ -14,11 +14,6 @@
 
 # Initialises linux-side of cross vm connections.
 
-# Dataport sizes must match those in the camkes spec.
-# For each argument to dataport_init, the nth pair
-# corresponds to the dataport with id n.
-dataport_init /dev/camkes_reverse_src 8192 /dev/camkes_reverse_dest 8192
-
 # The nth argument to event_init corresponds to the
 # event with id n according to the camkes vmm.
 consumes_event_init /dev/camkes_reverse_done
