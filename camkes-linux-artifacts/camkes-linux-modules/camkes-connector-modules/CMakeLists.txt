@@ -27,6 +27,9 @@ if(NOT CONNECTORS_INCLUDE_DIR)
     message(FATAL_ERROR "CONNECTORS_INCLUDE_DIR is not defined")
 endif()
 
-DefineLinuxModule(consumes_event INCLUDES ${CROSSVM_SRC}/shared_include)
-DefineLinuxModule(dataport INCLUDES ${CROSSVM_SRC}/shared_include ${CONNECTORS_INCLUDE_DIR})
-DefineLinuxModule(emits_event INCLUDES ${CROSSVM_SRC}/shared_include ${CONNECTORS_INCLUDE_DIR})
+
+DefineLinuxModule(${CMAKE_CURRENT_SOURCE_DIR}/consumes_event
+    INCLUDES ${CROSSVM_SRC}/shared_include)
+DefineLinuxModule(${CMAKE_CURRENT_SOURCE_DIR}/dataport)
+DefineLinuxModule(${CMAKE_CURRENT_SOURCE_DIR}/emits_event
+    INCLUDES ${CROSSVM_SRC}/shared_include ${CONNECTORS_INCLUDE_DIR})
