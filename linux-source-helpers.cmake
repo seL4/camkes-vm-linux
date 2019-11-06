@@ -91,12 +91,20 @@ function(ConfigureLinux linux_dir linux_config_location linux_symvers_location c
     # Get any existing dependencies for configuring linux
     cmake_parse_arguments(PARSE_ARGV 4 CONFIGURE_LINUX
         ""
-        ""
+        "ARCH;CROSS_COMPILE"
         "DEPENDS"
     )
     if (NOT "${CONFIGURE_LINUX_UNPARSED_ARGUMENTS}" STREQUAL "")
         message(FATAL_ERROR "Unknown arguments to ConfigureLinux: ${CONFIGURE_LINUX_UNPARSED_ARGUMENTS}")
     endif()
+    set(configure_flags "")
+    if (NOT "${CONFIGURE_LINUX_ARCH}" STREQUAL "")
+        set(configure_flags "ARCH=${CONFIGURE_LINUX_ARCH}")
+    endif()
+    if (NOT "${CONFIGURE_LINUX_CROSS_COMPILE}" STREQUAL "")
+        set(configure_flags "${configure_flags} CROSS_COMPILE=${CONFIGURE_LINUX_CROSS_COMPILE}")
+    endif()
+
     # Copy linux config & symvers
     add_custom_command(OUTPUT ${linux_dir}/.config ${linux_dir}/Module.symvers
         COMMAND ${CMAKE_COMMAND} -E copy "${linux_config_location}" "${linux_dir}/.config"
@@ -110,9 +118,9 @@ function(ConfigureLinux linux_dir linux_config_location linux_symvers_location c
     )
     # Prepare/Configure Linux Build Directory
     add_custom_command(OUTPUT ${linux_dir}/.config.old
-        COMMAND bash -c "make oldconfig"
-        COMMAND bash -c "make prepare"
-        COMMAND bash -c "make modules_prepare"
+        COMMAND bash -c "make oldconfig ${configure_flags} "
+        COMMAND bash -c "make prepare ${configure_flags} "
+        COMMAND bash -c "make modules_prepare ${configure_flags} "
         VERBATIM
         WORKING_DIRECTORY ${linux_dir}
         DEPENDS ${configure_linux_target}_copy_configs ${CONFIGURE_LINUX_DEPENDS}
