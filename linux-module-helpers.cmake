@@ -15,7 +15,9 @@ cmake_minimum_required(VERSION 3.8.2)
 # Function to define a linux kernel module. Given the directory to the
 # kernel module
 # module_dir: Directory to linux kernel module
-function(DefineLinuxModule module_dir)
+# output_module_dir: Location to compiled linux kernel module
+# output_module_target: Target name to be used for compiled linux kernel module
+function(DefineLinuxModule module_dir output_module_location output_module_target)
     cmake_parse_arguments(PARSE_ARGV 1 DEFINE_LINUX_MODULE
         ""
         ""
@@ -48,5 +50,6 @@ function(DefineLinuxModule module_dir)
         DEPENDS ${DEFINE_LINUX_MODULE_DEPENDS} ${${module_name}_files}
     )
     # Add target for linux module
-    add_custom_target(build_module_${module_name} ALL DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/${module_name}.ko")
+    add_custom_target(${output_module_target} ALL DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/${module_name}.ko")
+    set(${output_module_location} "${CMAKE_CURRENT_BINARY_DIR}/${module_name}.ko" PARENT_SCOPE)
 endfunction(DefineLinuxModule)

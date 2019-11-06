@@ -28,8 +28,8 @@ if(NOT CONNECTORS_INCLUDE_DIR)
 endif()
 
 
-DefineLinuxModule(${CMAKE_CURRENT_SOURCE_DIR}/consumes_event
+DefineLinuxModule(${CMAKE_CURRENT_SOURCE_DIR}/consumes_event consumes_event_output consumes_event_target
     INCLUDES ${CROSSVM_SRC}/shared_include)
-DefineLinuxModule(${CMAKE_CURRENT_SOURCE_DIR}/dataport)
-DefineLinuxModule(${CMAKE_CURRENT_SOURCE_DIR}/emits_event
+DefineLinuxModule(${CMAKE_CURRENT_SOURCE_DIR}/dataport dataport_output dataport_target)
+DefineLinuxModule(${CMAKE_CURRENT_SOURCE_DIR}/emits_event emits_event_output emits_event_target
     INCLUDES ${CROSSVM_SRC}/shared_include ${CONNECTORS_INCLUDE_DIR})
