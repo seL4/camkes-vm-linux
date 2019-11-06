@@ -32,7 +32,7 @@ error_exit() {
 gzip_rootfs_cpio() {
     printf "$(tput setaf 6)$(tput bold)Gzipping rootfs cpio image$(tput sgr0)\n"
     pushd ${OUTPUT_DIR}
-    gzip -k ${OUTPUT_NAME}
+    gzip -kf ${OUTPUT_NAME}
     popd
 }
 
