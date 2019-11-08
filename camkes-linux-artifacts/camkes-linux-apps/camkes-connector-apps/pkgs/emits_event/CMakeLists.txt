@@ -18,4 +18,4 @@ add_executable(emits_event_init init.c)
 target_link_libraries(emits_event_init camkesdevice)
 
 add_executable(emits_event_emit emit.c)
-target_link_libraries(emits_event_emit camkesdevice camkeslinux)
+target_link_libraries(emits_event_emit -static-libgcc -static)
