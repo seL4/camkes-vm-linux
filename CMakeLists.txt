@@ -86,7 +86,7 @@ if(CAmkESVMDefaultBuildrootOverlay)
     AddExternalProjFilesToOverlay(camkes-connector-apps ${connector_apps_binary_dir} default_buildroot_overlay "usr/sbin"
         FILES pkgs/consumes_event/consumes_event_init
         pkgs/consumes_event/consumes_event_wait pkgs/emits_event/emits_event_emit
-        pkgs/emits_event/emits_event_init pkgs/dataport/dataport_read
+        pkgs/dataport/dataport_read
         pkgs/dataport/dataport_write pkgs/string_reverse/string_reverse)
 
     # Declare camkes connector modules

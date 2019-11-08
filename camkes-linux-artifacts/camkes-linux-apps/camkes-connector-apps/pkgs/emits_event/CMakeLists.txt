@@ -14,8 +14,5 @@ cmake_minimum_required(VERSION 3.8.2)
 
 project(emits-event C)
 
-add_executable(emits_event_init init.c)
-target_link_libraries(emits_event_init camkesdevice)
-
 add_executable(emits_event_emit emit.c)
 target_link_libraries(emits_event_emit -static-libgcc -static)
