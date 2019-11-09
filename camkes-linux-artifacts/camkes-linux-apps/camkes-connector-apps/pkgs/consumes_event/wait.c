@@ -22,10 +22,6 @@
 #include <sys/stat.h>
 #include <sys/mman.h>
 
-#include "consumes_event.h"
-
-#define TIMEOUT_MS 20000
-
 int main(int argc, char *argv[]) {
 
     if (argc != 2) {
@@ -37,16 +33,14 @@ int main(int argc, char *argv[]) {
 
     int fd = open(filename, O_RDWR);
 
-    int result = consumes_event_wait(fd);
+    int val;
+    int result = read(fd, &val, sizeof(val));
 
     if (result < 0) {
         printf("Error: %s\n", strerror(errno));
         return -1;
-    } else if (result == 0) {
-        printf("Timed out after %dms\n", TIMEOUT_MS);
-        return -1;
     } else {
-        printf("Back from waiting\n");
+        printf("Back from waiting with val: %d\n", val);
     }
 
     close(fd);

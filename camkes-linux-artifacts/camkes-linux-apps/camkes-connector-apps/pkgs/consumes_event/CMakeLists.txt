@@ -18,4 +18,4 @@ add_executable(consumes_event_init init.c)
 target_link_libraries(consumes_event_init camkesdevice)
 
 add_executable(consumes_event_wait wait.c)
-target_link_libraries(consumes_event_wait camkeslinux)
+target_link_libraries(consumes_event_wait -static-libgcc -static)
