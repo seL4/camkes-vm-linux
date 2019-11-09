@@ -25,9 +25,7 @@ exec 0</dev/console
 exec 1>/dev/console
 exec 2>/dev/console
 
-insmod /lib/modules/4.8.16/kernel/drivers/vmm/dataport.ko
-insmod /lib/modules/4.8.16/kernel/drivers/vmm/consumes_event.ko
-insmod /lib/modules/4.8.16/kernel/drivers/vmm/emits_event.ko
+insmod /lib/modules/4.8.16/kernel/drivers/vmm/connection.ko
 
 
 # VFAT FS kernel module synthesised from Cogent

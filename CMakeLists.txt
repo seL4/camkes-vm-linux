@@ -108,7 +108,6 @@ if(CAmkESVMDefaultBuildrootOverlay)
         -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
         -DCMAKE_TOOLCHAIN_FILE=${LINUX_32BIT_TOOLCHAIN}
         -DLINUX_KERNEL_DIR=${vm_linux_extract_dir}
-        -DCROSSVM_SRC=${CMAKE_CURRENT_SOURCE_DIR}/../vm/libs/libcrossvm
         -DMODULE_HELPERS_FILE=${CMAKE_CURRENT_SOURCE_DIR}/linux-module-helpers.cmake
     )
 
@@ -133,9 +132,7 @@ if(CAmkESVMDefaultBuildrootOverlay)
         default_buildroot_overlay
         "lib/modules/4.8.16/kernel/drivers/vmm"
         FILES
-        consumes_event.ko
-        dataport.ko
-        emits_event.ko
+        connection.ko
     )
 
     # Add additional init scripts to the default buildroot overlay
