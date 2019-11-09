@@ -23,10 +23,6 @@ if(NOT CROSSVM_SRC)
     message(FATAL_ERROR "CROSSVM_SRC is not defined")
 endif()
 
-if(NOT CONNECTORS_INCLUDE_DIR)
-    message(FATAL_ERROR "CONNECTORS_INCLUDE_DIR is not defined")
-endif()
-
 if(NOT LINUX_KERNEL_DIR)
     message(FATAL_ERROR "LINUX_KERNEL_DIR is not defined")
 endif()

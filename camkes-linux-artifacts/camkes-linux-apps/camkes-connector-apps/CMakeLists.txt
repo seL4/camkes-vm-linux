@@ -12,9 +12,6 @@
 
 cmake_minimum_required(VERSION 3.8.2)
 
-add_subdirectory(libs/camkes)
-add_subdirectory(libs/device)
-
 add_subdirectory(pkgs/consumes_event)
 add_subdirectory(pkgs/dataport)
 add_subdirectory(pkgs/emits_event)
