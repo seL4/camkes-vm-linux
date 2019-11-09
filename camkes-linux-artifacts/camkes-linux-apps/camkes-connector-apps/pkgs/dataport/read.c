@@ -19,8 +19,6 @@
 #include <sys/stat.h>
 #include <sys/mman.h>
 
-#include "dataport.h"
-
 int main(int argc, char *argv[]) {
 
     if (argc != 3) {
@@ -32,12 +30,13 @@ int main(int argc, char *argv[]) {
 
     char *dataport_name = argv[1];
     int length = atoi(argv[2]);
+    assert(length > 0);
 
     int fd = open(dataport_name, O_RDWR);
     assert(fd >= 0);
 
     char *dataport;
-    if ((dataport = mmap(NULL, length, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0 * getpagesize())) == (caddr_t)-1) {
+    if ((dataport = mmap(NULL, length, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 1 * getpagesize())) == (void *) -1) {
         printf("mmap failed\n");
         close(fd);
     }
