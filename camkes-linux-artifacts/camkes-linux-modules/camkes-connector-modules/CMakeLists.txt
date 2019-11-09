@@ -31,12 +31,32 @@ if(NOT LINUX_KERNEL_DIR)
     message(FATAL_ERROR "LINUX_KERNEL_DIR is not defined")
 endif()
 
-DefineLinuxModule(${CMAKE_CURRENT_SOURCE_DIR}/consumes_event consumes_event_output consumes_event_target
-    INCLUDES ${CROSSVM_SRC}/shared_include
-    KERNEL_DIR ${LINUX_KERNEL_DIR})
-DefineLinuxModule(${CMAKE_CURRENT_SOURCE_DIR}/dataport dataport_output dataport_target
-    INCLUDES ${CROSSVM_SRC}/shared_include ${CONNECTORS_INCLUDE_DIR}
-    KERNEL_DIR ${LINUX_KERNEL_DIR})
-DefineLinuxModule(${CMAKE_CURRENT_SOURCE_DIR}/emits_event emits_event_output emits_event_target
-    INCLUDES ${CROSSVM_SRC}/shared_include ${CONNECTORS_INCLUDE_DIR}
-    KERNEL_DIR ${LINUX_KERNEL_DIR})
+DefineLinuxModule(
+    ${CMAKE_CURRENT_SOURCE_DIR}/consumes_event
+    consumes_event_output
+    consumes_event_target
+    INCLUDES
+    ${CROSSVM_SRC}/shared_include
+    KERNEL_DIR
+    ${LINUX_KERNEL_DIR}
+)
+DefineLinuxModule(
+    ${CMAKE_CURRENT_SOURCE_DIR}/dataport
+    dataport_output
+    dataport_target
+    INCLUDES
+    ${CROSSVM_SRC}/shared_include
+    ${CONNECTORS_INCLUDE_DIR}
+    KERNEL_DIR
+    ${LINUX_KERNEL_DIR}
+)
+DefineLinuxModule(
+    ${CMAKE_CURRENT_SOURCE_DIR}/emits_event
+    emits_event_output
+    emits_event_target
+    INCLUDES
+    ${CROSSVM_SRC}/shared_include
+    ${CONNECTORS_INCLUDE_DIR}
+    KERNEL_DIR
+    ${LINUX_KERNEL_DIR}
+)

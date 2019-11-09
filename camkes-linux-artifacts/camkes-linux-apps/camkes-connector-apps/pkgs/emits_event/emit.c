@@ -21,7 +21,8 @@
 #include <sys/stat.h>
 #include <sys/mman.h>
 
-int main(int argc, char *argv[]) {
+int main(int argc, char *argv[])
+{
 
     if (argc != 2) {
         printf("Usage: %s file\n\n"

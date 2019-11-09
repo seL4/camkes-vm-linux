@@ -19,7 +19,8 @@
 #include <sys/stat.h>
 #include <sys/mman.h>
 
-int main(int argc, char *argv[]) {
+int main(int argc, char *argv[])
+{
 
     if (argc != 3) {
         printf("Usage: %s file dataport_size\n\n"
