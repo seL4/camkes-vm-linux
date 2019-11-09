@@ -84,8 +84,7 @@ if(CAmkESVMDefaultBuildrootOverlay)
 
     # Declare camkes connector apps
     AddExternalProjFilesToOverlay(camkes-connector-apps ${connector_apps_binary_dir} default_buildroot_overlay "usr/sbin"
-        FILES pkgs/consumes_event/consumes_event_init
-        pkgs/consumes_event/consumes_event_wait pkgs/emits_event/emits_event_emit
+        FILES pkgs/consumes_event/consumes_event_wait pkgs/emits_event/emits_event_emit
         pkgs/dataport/dataport_read
         pkgs/dataport/dataport_write pkgs/string_reverse/string_reverse)
 
@@ -95,6 +94,5 @@ if(CAmkESVMDefaultBuildrootOverlay)
 
     # Add additional init scripts to the default buildroot overlay
     AddFileToOverlayDir("init" ${CMAKE_CURRENT_LIST_DIR}/camkes-linux-artifacts/camkes-linux-init-scripts/buildroot_init/init_template "." default_buildroot_overlay)
-    AddFileToOverlayDir("S90camkes_init" ${CMAKE_CURRENT_LIST_DIR}/camkes-linux-artifacts/camkes-linux-init-scripts/buildroot_init/camkes_init "etc/init.d" default_buildroot_overlay)
 
 endif()
