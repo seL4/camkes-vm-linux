@@ -29,23 +29,6 @@ insmod /lib/modules/4.8.16/kernel/drivers/vmm/dataport.ko
 insmod /lib/modules/4.8.16/kernel/drivers/vmm/consumes_event.ko
 insmod /lib/modules/4.8.16/kernel/drivers/vmm/emits_event.ko
 
-# Initialising the Vchan driver
-#insmod /lib/modules/__LINUX_VERSION__/kernel/drivers/vmm/vmm_manager.ko
-#if [ "$?" -lt "0" ]; then
-#	echo "vmm driver initialisation FAILED with $?" > /dev/kmsg
-# else
-	# echo "Starting tests" 2>&1 > /dev/kmsg
-	# /bin/vmm_manager_tests > /dev/kmsg
-	# if [ "$?" -eq "0" ]; then
-		# echo "vmm driver tests concluded with no errors" > /dev/kmsg
-	# fi
-	# var=`/bin/vm_guest_manip num`
-	# if [ "$var" -eq "0" ]; then
-		# /bin/sel4_vchan_testsuite > /dev/kmsg
-	# else
-		# echo "$var skipping tests.." > /dev/kmsg
-	# fi
-#fi
 
 # VFAT FS kernel module synthesised from Cogent
 #insmod /lib/modules/__LINUX_VERSION__/kernel/drivers/vfat/cg-fat.ko

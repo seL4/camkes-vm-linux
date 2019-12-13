@@ -24,11 +24,6 @@ config_option(CAmkESVMDefaultBuildrootOverlay CAMKES_VM_DEFAULT_BUILDROOT_OVERLA
     DEFAULT OFF
     DEPENDS "KernelArchX86")
 
-config_option(CAmkESVMLinuxVchan CAMKES_VM_LINUX_VCHAN "Enable installation of VChan packages and modules in the guest VM"
-    DEFAULT OFF
-    DEPENDS "CAmkESVMDefaultBuildrootOverlay;KernelArchX86"
-)
-
 add_config_library(camkes-vm-linux "${configure_string}")
 
 if(CAmkESVMDefaultBuildrootOverlay)
@@ -102,48 +97,4 @@ if(CAmkESVMDefaultBuildrootOverlay)
     AddFileToOverlayDir("init" ${CMAKE_CURRENT_LIST_DIR}/camkes-linux-artifacts/camkes-linux-init-scripts/buildroot_init/init_template "." default_buildroot_overlay)
     AddFileToOverlayDir("S90camkes_init" ${CMAKE_CURRENT_LIST_DIR}/camkes-linux-artifacts/camkes-linux-init-scripts/buildroot_init/camkes_init "etc/init.d" default_buildroot_overlay)
 
-    # Install VChan artifacts
-    if(CAmkESVMLinuxVchan)
-        # Build vchan apps
-        set(vchan_apps_stamp_dir ${CMAKE_CURRENT_BINARY_DIR}/camkes-vchan-apps-stamp)
-        set(vchan_apps_binary_dir ${binary_dir}/vchan-apps)
-        # Add External vhcan apps project
-        ExternalProject_Add(camkes-vchan-apps
-            URL file:///${CMAKE_CURRENT_SOURCE_DIR}/camkes-linux-artifacts/camkes-linux-apps/camkes-vchan-apps
-            BINARY_DIR ${vchan_apps_binary_dir}
-            BUILD_ALWAYS ON
-            STAMP_DIR ${vchan_apps_stamp_dir}
-            EXCLUDE_FROM_ALL
-            INSTALL_COMMAND ""
-            CMAKE_ARGS
-                -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
-                -DCMAKE_TOOLCHAIN_FILE=${LINUX_32BIT_TOOLCHAIN}
-        )
-        # Build vchan modules
-        set(vchan_modules_stamp_dir ${CMAKE_CURRENT_BINARY_DIR}/camkes-vchan-modules-stamp)
-        set(vchan_modules_binary_dir ${binary_dir}/vchan-modules)
-        # Add External vhcan modules project
-        ExternalProject_Add(camkes-vchan-modules
-            URL file:///${CMAKE_CURRENT_SOURCE_DIR}/camkes-linux-artifacts/camkes-linux-modules/camkes-vchan-modules
-            BINARY_DIR ${vchan_modules_binary_dir}
-            BUILD_ALWAYS ON
-            STAMP_DIR ${vchan_modules_stamp_dir}
-            EXCLUDE_FROM_ALL
-            INSTALL_COMMAND ""
-            DEPENDS download_vm_linux configure_vm_linux
-            CMAKE_ARGS
-                -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
-                -DCMAKE_TOOLCHAIN_FILE=${LINUX_32BIT_TOOLCHAIN}
-                -DCROSSVM_SRC=${CMAKE_CURRENT_SOURCE_DIR}/../vm/libs/libcrossvm
-                -DVCHAN_INCLUDE_DIR=${CMAKE_CURRENT_SOURCE_DIR}/camkes-linux-artifacts/camkes-linux-apps/camkes-vchan-apps/libs/vchan/includes
-                -DMODULE_HELPERS_FILE=${CMAKE_CURRENT_SOURCE_DIR}/linux-module-helpers.cmake
-                -DLINUX_KERNEL_DIR=${vm_linux_extract_dir}
-        )
-        # Declare vchan apps
-        AddExternalProjFilesToOverlay(camkes-vchan-apps ${vchan_apps_binary_dir} default_buildroot_overlay "usr/sbin"
-            FILES virt/sel4_vchan_testsuite virt/vchan_test_prog virt/vmm_manager_tests virt/vm_guest_manip)
-        # Declare vchan modules
-        AddExternalProjFilesToOverlay(camkes-vchan-modules ${vchan_modules_binary_dir} default_buildroot_overlay "lib/modules/4.8.16/kernel/drivers/vmm"
-            FILES vmm_manager.ko)
-    endif()
 endif()
