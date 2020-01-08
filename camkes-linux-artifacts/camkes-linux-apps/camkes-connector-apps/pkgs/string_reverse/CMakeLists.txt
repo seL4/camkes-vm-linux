@@ -15,4 +15,4 @@ cmake_minimum_required(VERSION 3.8.2)
 project(string_reverse C)
 
 add_executable(string_reverse string_reverse.c)
-target_link_libraries(string_reverse camkeslinux)
+target_link_libraries(string_reverse -static-libgcc -static)
