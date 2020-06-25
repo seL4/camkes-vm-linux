@@ -29,9 +29,12 @@
 #define PCI_CONNECTOR_DEVICE_ID 0xa111
 #define MAX_CONNECTOR_DEVICES 32
 
+#define DEVICE_NAME_REGISTER_OFFSET 2
+#define DEVICE_NAME_MAX_LEN 50
 typedef struct connector_dev_node {
     struct pci_dev *dev;
     struct uio_info *uio;
+    char dev_name[DEVICE_NAME_MAX_LEN];
 } connector_dev_node_t;
 
 connector_dev_node_t *devices[MAX_CONNECTOR_DEVICES];
@@ -58,6 +61,7 @@ static int connector_pci_probe(struct pci_dev *dev,
 {
     connector_dev_node_t *connector;
     struct uio_info *uio;
+    uint32_t *event_bar;
     int num_bars;
     int err = 0;
     int unmap = 0;
@@ -132,8 +136,9 @@ static int connector_pci_probe(struct pci_dev *dev,
 
     connector->uio = uio;
     connector->dev = dev;
-
-    uio->name = "connector";
+    event_bar = uio->mem[0].internal_addr;
+    strncpy(connector->dev_name, (char *)&event_bar[DEVICE_NAME_REGISTER_OFFSET], DEVICE_NAME_MAX_LEN);
+    uio->name = connector->dev_name;
     uio->version = "0.0.1";
 
     if (uio_register_device(&dev->dev, uio)) {
