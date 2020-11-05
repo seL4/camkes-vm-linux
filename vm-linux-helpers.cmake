@@ -208,7 +208,7 @@ function(
     add_custom_command(
         OUTPUT ${output_dtb_filename}
         COMMAND
-            python "${UPDATE_INITRD_ROOTFS_PATH}"
+            python3 "${UPDATE_INITRD_ROOTFS_PATH}"
             --dtb "${input_dtb_file}"
             --output_dtb "${CMAKE_CURRENT_BINARY_DIR}/${output_dtb_filename}"
             --initrd "${input_rootfs_file}"
