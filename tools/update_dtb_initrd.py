@@ -25,10 +25,19 @@ def update_node_property(node, property_name, property_value):
 
 
 def update_chosen(node, initrd_start, initrd_size):
+    # DTS Protocol dictates >32-bit values be represented in pairs. ie, 0x800000000 -> 0x8 0x0
+    initrd_end = initrd_start + initrd_size
+
+    update_start = [initrd_start] if initrd_start <= 0xFFFFFFFF \
+        else [initrd_start >> 32, initrd_start & 0xFFFFFFFF]
+
+    update_end = [initrd_end] if initrd_end <= 0xFFFFFFFF \
+        else [initrd_end >> 32, initrd_end & 0xFFFFFFFF]
+
     # Update initrd start
-    update_node_property(node, "linux,initrd-start", [initrd_start])
+    update_node_property(node, "linux,initrd-start", update_start)
     # Update initrd end
-    update_node_property(node, "linux,initrd-end", [initrd_start + initrd_size])
+    update_node_property(node, "linux,initrd-end", update_end)
 
 
 def update_dtb(dtb_path, initrd_path, initrd_start):
