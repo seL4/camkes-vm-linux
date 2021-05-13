@@ -10,6 +10,7 @@ import argparse
 import pyfdt.pyfdt
 import logging
 
+
 def update_node_property(node, property_name, property_value):
     try:
         # Check if the property exists, if so, remove it and re-insert it
@@ -21,11 +22,14 @@ def update_node_property(node, property_name, property_value):
         node.add_subnode(pyfdt.pyfdt.FdtPropertyWords(property_name, property_value))
 
 # Update chosen node with new initrd-start and initrd-end values
+
+
 def update_chosen(node, initrd_start, initrd_size):
     # Update initrd start
     update_node_property(node, "linux,initrd-start", [initrd_start])
     # Update initrd end
     update_node_property(node, "linux,initrd-end", [initrd_start + initrd_size])
+
 
 def update_dtb(dtb_path, initrd_path, initrd_start):
     fdt = pyfdt.pyfdt.FdtBlobParse(args.dtb).to_fdt()
@@ -45,14 +49,17 @@ def update_dtb(dtb_path, initrd_path, initrd_start):
         root.add_subnode(chosen_node)
     return fdt
 
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--dtb', help='Path to the device tree', required=True, type=argparse.FileType('rb'))
-    parser.add_argument('--output_dtb', help='Output path to the updated device tree', required=True, type=argparse.FileType('wb'))
+    parser.add_argument('--dtb', help='Path to the device tree',
+                        required=True, type=argparse.FileType('rb'))
+    parser.add_argument('--output_dtb', help='Output path to the updated device tree',
+                        required=True, type=argparse.FileType('wb'))
     parser.add_argument('--initrd', help='Path to the initrd image the dtb will be bundled with when booting the guest',
-            required=True, type=argparse.FileType('rb'))
+                        required=True, type=argparse.FileType('rb'))
     parser.add_argument('--initrd_start', help='Starting location of initrd image in guest kernel memory (hexdecimal)',
-            required=True, type=lambda x: int(x,0))
+                        required=True, type=lambda x: int(x, 0))
     args = parser.parse_args()
     fdt = update_dtb(args.dtb, args.initrd, args.initrd_start)
     args.output_dtb.write(fdt.to_dtb())
