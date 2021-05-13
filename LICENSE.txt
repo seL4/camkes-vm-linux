@@ -1,5 +1,0 @@
-Please see the individual source files for the licenses that apply to each 
-artifact.
-
-For licensing an application using the libraries in this repository, you must
-check each library that you link against.
