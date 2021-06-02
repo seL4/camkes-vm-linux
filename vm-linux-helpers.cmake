@@ -228,6 +228,20 @@ function(GetDefaultLinuxKernelFile dest_file)
     set(${dest_file} ${VM_LINUX_PROJECT_DIR}/images/kernel/${arch_size_dir}/default_bzimage_4.8.16 PARENT_SCOPE)
 endfunction(GetDefaultLinuxKernelFile)
 
+# Function for getting a 32 or 64 Linux guest kernel provided
+# by the vm project
+# arch_size : 32 or 64 for getting the 32-bit or 64-bit kernel
+# dest_file : caller variable which is set with the kernel location
+function(GetArchDefaultLinuxKernelFile arch_size dest_file)
+    if(NOT (arch_size STREQUAL "32" OR arch_size STREQUAL "64"))
+        message(FATAL_ERROR "arch_size for GetArchDefaultLinuxKernelFile should be either 32 or 64")
+    endif()
+    set(
+        ${dest_file} ${VM_LINUX_PROJECT_DIR}/images/kernel/${arch_size}/default_bzimage_4.8.16
+        PARENT_SCOPE
+    )
+endfunction(GetArchDefaultLinuxKernelFile)
+
 # Function for getting the default location of the Linux guest rootfs provided
 # by the vm project
 # dest_file: caller variable which is set with the rootfs location
@@ -237,3 +251,18 @@ function(GetDefaultLinuxRootfsFile dest_file)
         PARENT_SCOPE
     )
 endfunction(GetDefaultLinuxRootfsFile)
+
+# Function for getting a 32 or 64 Linux guest rootfs provided
+# by the vm project
+# arch_size : 32 or 64 for getting the 32-bit or 64-bit kernel
+# dest_file : caller variable which is set with the kernel location
+function(GetArchDefaultLinuxRootfsFile arch_size dest_file)
+    if(NOT (arch_size STREQUAL "32" OR arch_size STREQUAL "64"))
+        message(FATAL_ERROR "arch_size for GetArchDefaultLinuxRootfsFile should be either 32 or 64")
+    endif()
+    set(
+        ${dest_file}
+        ${VM_LINUX_PROJECT_DIR}/images/rootfs/${arch_size}/default_buildroot_rootfs-bare.cpio
+        PARENT_SCOPE
+    )
+endfunction(GetArchDefaultLinuxRootfsFile)
