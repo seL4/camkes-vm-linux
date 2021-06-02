@@ -225,7 +225,10 @@ endfunction(UpdateDtbFromInitrd)
 # by the vm project
 # dest_file: caller variable which is set with the kernel location
 function(GetDefaultLinuxKernelFile dest_file)
-    set(${dest_file} ${VM_LINUX_PROJECT_DIR}/images/kernel/${arch_size_dir}/default_bzimage_4.8.16 PARENT_SCOPE)
+    set(
+        ${dest_file} ${VM_LINUX_PROJECT_DIR}/images/kernel/${arch_size_dir}/default_bzimage_4.8.16
+        PARENT_SCOPE
+    )
 endfunction(GetDefaultLinuxKernelFile)
 
 # Function for getting a 32 or 64 Linux guest kernel provided
@@ -247,7 +250,8 @@ endfunction(GetArchDefaultLinuxKernelFile)
 # dest_file: caller variable which is set with the rootfs location
 function(GetDefaultLinuxRootfsFile dest_file)
     set(
-        ${dest_file} ${VM_LINUX_PROJECT_DIR}/images/rootfs/${arch_size_dir}/default_buildroot_rootfs-bare.cpio
+        ${dest_file}
+        ${VM_LINUX_PROJECT_DIR}/images/rootfs/${arch_size_dir}/default_buildroot_rootfs-bare.cpio
         PARENT_SCOPE
     )
 endfunction(GetDefaultLinuxRootfsFile)
