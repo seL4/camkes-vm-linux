@@ -52,6 +52,51 @@ function(AddFileToOverlayDir filename file_location root_location overlay_name)
     )
 endfunction(AddFileToOverlayDir)
 
+# Function to add a symbolic link to a relative path within the overlay
+#
+# Example usage:
+# AddFileToOverlayDir("network_boot" "/path/to/vm_network_boot" "etc/init.d" "overlay")
+# AddLinkToOverlayDir("K90network_boot" "../init.d/network_boot" "etc/rc0.d/" "overlay")
+#
+# filename: The name of the link in the overlay
+# file_location: Relative path to the file we are adding the overlay
+# root_location: The folder in VM's root filesystem where the link is created in.
+# overlay_name: Overlay target name
+function(AddLinkToOverlayDir filename file_location root_location overlay_name)
+    # Get any existing dependencies when adding the file into the overlay
+    cmake_parse_arguments(PARSE_ARGV 4 ROOTFS_FILE_OVERLAY "" "" "DEPENDS")
+    if(ROOTFS_FILE_OVERLAY_UNPARSED_ARGUMENTS)
+        message(FATAL_ERROR "Unknown arguments to AddLinkToOverlay")
+    endif()
+    set(rootfs_output_dir "${CMAKE_CURRENT_BINARY_DIR}/${overlay_name}")
+    if(TARGET ${overlay_name})
+        get_target_property(rootfs_output_dir ${overlay_name} ROOTFS_OUTPUT_DIR)
+    else()
+        add_custom_target(${overlay_name})
+        set_property(
+            TARGET ${overlay_name}
+            APPEND
+            PROPERTY ROOTFS_OUTPUT_DIR "${rootfs_output_dir}"
+        )
+    endif()
+
+    # Create the symbolic link
+    add_custom_command(
+        OUTPUT ${rootfs_output_dir}/${root_location}/${filename}
+        COMMAND
+            cd ${rootfs_output_dir}/${root_location} && ln -s ${file_location} ${filename}
+        VERBATIM
+        DEPENDS ${ROOTFS_FILE_OVERLAY_DEPENDS}
+    )
+
+    # Add the copy command as a dependency for the overlay directory
+    set_property(
+        TARGET ${overlay_name}
+        APPEND
+        PROPERTY DEPENDS "${rootfs_output_dir}/${root_location}/${filename}"
+    )
+endfunction(AddLinkToOverlayDir)
+
 # Add a given overlay (location to directory or image file) to install on a given rootfs_image
 # rootfs_overlay : Absolute path to directory or overlay file
 # rootfs_image: Absolute path to the rootfs image you are overlaying
