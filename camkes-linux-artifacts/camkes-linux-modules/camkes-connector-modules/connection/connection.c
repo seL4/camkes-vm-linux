@@ -56,9 +56,8 @@ static int connector_pci_probe(struct pci_dev *dev,
     connector_dev_node_t *connector;
     struct uio_info *uio;
     uint32_t *event_bar;
-    int num_bars;
+    int last_bar = -1;
     int err = 0;
-    int unmap = 0;
     int i = 0;
 
     if (current_free_dev >= MAX_CONNECTOR_DEVICES) {
@@ -87,21 +86,7 @@ static int connector_pci_probe(struct pci_dev *dev,
         goto disable_pci;
     }
 
-    /* Set up the event bar - We assume the event bar is always BAR0
-     * even if the PCI device does not use events */
-    uio->mem[0].addr = pci_resource_start(dev, 0);
-    if (!uio->mem[0].addr) {
-        goto disable_pci;
-    }
-    uio->mem[0].size = pci_resource_len(dev, 0);
-    uio->mem[0].internal_addr = pci_ioremap_bar(dev, 0);
-    if (!uio->mem[0].internal_addr) {
-        goto disable_pci;
-    }
-    uio->mem[0].memtype = UIO_MEM_PHYS;
-    printk("Event Bar (dev-%d) initalised\n", current_free_dev);
-
-    for (i = 1; i < MAX_UIO_MAPS; i++) {
+    for (i = 0; i < MAX_UIO_MAPS; i++) {
         uio->mem[i].addr = pci_resource_start(dev, i);
         if (!uio->mem[i].addr) {
             /* We assume the first NULL bar is the end
@@ -117,11 +102,17 @@ static int connector_pci_probe(struct pci_dev *dev,
         }
         uio->mem[i].size = pci_resource_len(dev, i);
         uio->mem[i].memtype = UIO_MEM_PHYS;
+
+        last_bar = i;
     }
-    num_bars = i;
-    if (err) {
+
+    /* We assume the event bar BAR0 always exists, even if the PCI device does
+     * not use events. */
+    if (err || last_bar < 0) {
         goto unmap_bars;
     }
+
+    printk("Event Bar (dev-%d) initialized\n", current_free_dev);
 
     /* Register our IRQ handler */
     uio->irq = dev->irq;
@@ -139,15 +130,14 @@ static int connector_pci_probe(struct pci_dev *dev,
         goto unmap_bars;
     }
 
-    printk("%d Dataports (dev-%d) initalised\n", num_bars, current_free_dev);
+    printk("%d Dataports (dev-%d) initialized\n", last_bar, current_free_dev);
     pci_set_drvdata(dev, uio);
     devices[current_free_dev++] = connector;
 
     return 0;
 unmap_bars:
-    iounmap(uio->mem[0].internal_addr);
-    for (unmap = 1; unmap < num_bars; unmap++) {
-        iounmap(uio->mem[unmap].internal_addr);
+    for (i = 0; i <= last_bar; i++) {
+        iounmap(uio->mem[i].internal_addr);
     }
     pci_release_regions(dev);
 disable_pci:
