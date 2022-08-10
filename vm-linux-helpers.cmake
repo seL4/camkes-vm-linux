@@ -245,6 +245,13 @@ function(GetArchDefaultLinuxKernelFile arch_size dest_file)
     )
 endfunction(GetArchDefaultLinuxKernelFile)
 
+function(GetSupermicroLinuxKernelFile dest_file)
+    set(
+        ${dest_file} ${VM_LINUX_PROJECT_DIR}/images/kernel/32/bzimage_5.18.0
+        PARENT_SCOPE
+    )
+endfunction(GetSupermicroLinuxKernelFile)
+
 # Function for getting the default location of the Linux guest rootfs provided
 # by the vm project
 # dest_file: caller variable which is set with the rootfs location
