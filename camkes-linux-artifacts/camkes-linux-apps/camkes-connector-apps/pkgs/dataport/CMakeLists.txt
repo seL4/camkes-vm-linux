@@ -13,3 +13,6 @@ target_link_libraries(dataport_read -static-libgcc -static)
 
 add_executable(dataport_write write.c)
 target_link_libraries(dataport_write -static-libgcc -static)
+
+add_executable(dataport_sata_backend sata_backend.c)
+target_link_libraries(dataport_sata_backend -static-libgcc -static)
