@@ -7,7 +7,7 @@
 cmake_minimum_required(VERSION 3.8.2)
 RequireFile(UPDATE_INITRD_ROOTFS_PATH update_dtb_initrd.py PATHS "${CMAKE_CURRENT_LIST_DIR}/tools")
 set(VM_LINUX_PROJECT_DIR "${CMAKE_CURRENT_LIST_DIR}" CACHE INTERNAL "")
-if(KernelSel4ArchX86_64)
+if(KernelX86_64VTX64BitGuests)
     set(arch_size_dir "64")
 else()
     set(arch_size_dir "32")
