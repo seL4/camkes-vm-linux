@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: BSD-2-Clause
 #
 
-cmake_minimum_required(VERSION 3.8.2)
+cmake_minimum_required(VERSION 3.16.0)
 RequireFile(UPDATE_INITRD_ROOTFS_PATH update_dtb_initrd.py PATHS "${CMAKE_CURRENT_LIST_DIR}/tools")
 set(VM_LINUX_PROJECT_DIR "${CMAKE_CURRENT_LIST_DIR}" CACHE INTERNAL "")
 if(KernelX86_64VTX64BitGuests)
