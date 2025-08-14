@@ -13,12 +13,7 @@ cmake_minimum_required(VERSION 3.16.0)
 # output_module_target: Target name to be used for compiled linux kernel module
 function(DefineLinuxModule module_dir output_module_location output_module_target)
     cmake_parse_arguments(
-        PARSE_ARGV
-        1
-        DEFINE_LINUX_MODULE
-        ""
-        "KERNEL_DIR;ARCH;CROSS_COMPILE"
-        "DEPENDS;INCLUDES"
+        PARSE_ARGV 1 DEFINE_LINUX_MODULE "" "KERNEL_DIR;ARCH;CROSS_COMPILE" "DEPENDS;INCLUDES"
     )
     # Check that the linux kerenl directory has been passed
     if(NOT DEFINE_LINUX_MODULE_KERNEL_DIR)
@@ -64,8 +59,10 @@ function(DefineLinuxModule module_dir output_module_location output_module_targe
     )
     # Add target for linux module
     add_custom_target(
-        ${output_module_target} ALL
-        DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/${module_name}.ko"
+        ${output_module_target} ALL DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/${module_name}.ko"
     )
-    set(${output_module_location} "${CMAKE_CURRENT_BINARY_DIR}/${module_name}.ko" PARENT_SCOPE)
+    set(${output_module_location}
+        "${CMAKE_CURRENT_BINARY_DIR}/${module_name}.ko"
+        PARENT_SCOPE
+    )
 endfunction(DefineLinuxModule)

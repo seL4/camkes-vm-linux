@@ -17,10 +17,6 @@ if(NOT LINUX_KERNEL_DIR)
 endif()
 
 DefineLinuxModule(
-    ${CMAKE_CURRENT_SOURCE_DIR}/connection
-    connection_output
-    connection_target
-    INCLUDES
-    KERNEL_DIR
+    ${CMAKE_CURRENT_SOURCE_DIR}/connection connection_output connection_target INCLUDES KERNEL_DIR
     ${LINUX_KERNEL_DIR}
 )
