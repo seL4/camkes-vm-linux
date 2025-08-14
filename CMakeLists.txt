@@ -32,13 +32,13 @@ if(CAmkESVMDefaultBuildrootOverlay)
     set(binary_dir ${CMAKE_BINARY_DIR}/camkes-linux-artifacts)
 
     if(KernelSel4ArchX86_64)
-      # Get Custom toolchain for 64-bit Linux
-      FindCustomPollyToolchain(LINUX_TOOLCHAIN "linux-gcc-64bit-pic")
-      set(arch_size_dir "64")
+        # Get Custom toolchain for 64-bit Linux
+        FindCustomPollyToolchain(LINUX_TOOLCHAIN "linux-gcc-64bit-pic")
+        set(arch_size_dir "64")
     else()
-      # Get Custom toolchain for 32-bit Linux
-      FindCustomPollyToolchain(LINUX_TOOLCHAIN "linux-gcc-32bit-pic")
-      set(arch_size_dir "32")
+        # Get Custom toolchain for 32-bit Linux
+        FindCustomPollyToolchain(LINUX_TOOLCHAIN "linux-gcc-32bit-pic")
+        set(arch_size_dir "32")
     endif()
 
     # Setup Linux Sources
@@ -47,21 +47,15 @@ if(CAmkESVMDefaultBuildrootOverlay)
     GetDefaultLinuxMd5(linux_md5)
     DownloadLinux(${linux_major} ${linux_minor} ${linux_md5} vm_linux_extract_dir download_vm_linux)
     # Linux config and symvers are to be copied to unpacked archive
-    set(
-        linux_config
+    set(linux_config
         "${CMAKE_CURRENT_SOURCE_DIR}/linux_configs/${linux_major}.${linux_minor}/${arch_size_dir}/config"
     )
-    set(
-        linux_symvers
+    set(linux_symvers
         "${CMAKE_CURRENT_SOURCE_DIR}/linux_configs/${linux_major}.${linux_minor}/${arch_size_dir}/Module.symvers"
     )
     # Configure unpacked archive with config and symvers
     ConfigureLinux(
-        ${vm_linux_extract_dir}
-        ${linux_config}
-        ${linux_symvers}
-        configure_vm_linux
-        DEPENDS
+        ${vm_linux_extract_dir} ${linux_config} ${linux_symvers} configure_vm_linux DEPENDS
         download_vm_linux
     )
 
@@ -70,20 +64,14 @@ if(CAmkESVMDefaultBuildrootOverlay)
     set(connector_apps_binary_dir ${binary_dir}/connector-apps)
     ExternalProject_Add(
         camkes-connector-apps
-        URL
-        file:///${CMAKE_CURRENT_SOURCE_DIR}/camkes-linux-artifacts/camkes-linux-apps/camkes-connector-apps
-        BINARY_DIR
-        ${connector_apps_binary_dir}
-        BUILD_ALWAYS
-        ON
-        STAMP_DIR
-        ${connector_apps_stamp_dir}
-        EXCLUDE_FROM_ALL
-        INSTALL_COMMAND
+        URL file:///${CMAKE_CURRENT_SOURCE_DIR}/camkes-linux-artifacts/camkes-linux-apps/camkes-connector-apps
+        BINARY_DIR ${connector_apps_binary_dir}
+        BUILD_ALWAYS ON
+        STAMP_DIR ${connector_apps_stamp_dir}
+        EXCLUDE_FROM_ALL INSTALL_COMMAND
         ""
-        CMAKE_ARGS
-        -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
-        -DCMAKE_TOOLCHAIN_FILE=${LINUX_32BIT_TOOLCHAIN}
+        CMAKE_ARGS -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+                   -DCMAKE_TOOLCHAIN_FILE=${LINUX_32BIT_TOOLCHAIN}
     )
 
     # Build camkes connector modules
@@ -91,25 +79,17 @@ if(CAmkESVMDefaultBuildrootOverlay)
     set(connector_modules_binary_dir ${binary_dir}/connector-modules)
     ExternalProject_Add(
         camkes-connector-modules
-        URL
-        file:///${CMAKE_CURRENT_SOURCE_DIR}/camkes-linux-artifacts/camkes-linux-modules/camkes-connector-modules
-        BINARY_DIR
-        ${connector_modules_binary_dir}
-        BUILD_ALWAYS
-        ON
-        STAMP_DIR
-        ${connector_modules_stamp_dir}
-        EXCLUDE_FROM_ALL
-        INSTALL_COMMAND
+        URL file:///${CMAKE_CURRENT_SOURCE_DIR}/camkes-linux-artifacts/camkes-linux-modules/camkes-connector-modules
+        BINARY_DIR ${connector_modules_binary_dir}
+        BUILD_ALWAYS ON
+        STAMP_DIR ${connector_modules_stamp_dir}
+        EXCLUDE_FROM_ALL INSTALL_COMMAND
         ""
-        DEPENDS
-        download_vm_linux
-        configure_vm_linux
-        CMAKE_ARGS
-        -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
-        -DCMAKE_TOOLCHAIN_FILE=${LINUX_32BIT_TOOLCHAIN}
-        -DLINUX_KERNEL_DIR=${vm_linux_extract_dir}
-        -DMODULE_HELPERS_FILE=${CMAKE_CURRENT_SOURCE_DIR}/linux-module-helpers.cmake
+        DEPENDS download_vm_linux configure_vm_linux
+        CMAKE_ARGS -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+                   -DCMAKE_TOOLCHAIN_FILE=${LINUX_32BIT_TOOLCHAIN}
+                   -DLINUX_KERNEL_DIR=${vm_linux_extract_dir}
+                   -DMODULE_HELPERS_FILE=${CMAKE_CURRENT_SOURCE_DIR}/linux-module-helpers.cmake
     )
 
     # Declare camkes connector apps
@@ -128,12 +108,8 @@ if(CAmkESVMDefaultBuildrootOverlay)
 
     # Declare camkes connector modules
     AddExternalProjFilesToOverlay(
-        camkes-connector-modules
-        ${connector_modules_binary_dir}
-        default_buildroot_overlay
-        "lib/modules/4.8.16/kernel/drivers/vmm"
-        FILES
-        connection.ko
+        camkes-connector-modules ${connector_modules_binary_dir} default_buildroot_overlay
+        "lib/modules/4.8.16/kernel/drivers/vmm" FILES connection.ko
     )
 
     # Add additional init scripts to the default buildroot overlay
